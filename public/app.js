@@ -44,6 +44,8 @@ const I = {
   chart: SVG('<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 6-7"/>'),
   search: SVG('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
   up: SVG('<path d="m6 15 6-6 6 6"/>'),
+  trophy: SVG('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>'),
+  pin: SVG('<path d="M12 22s7-7 7-12a7 7 0 0 0-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>'),
 };
 function ri(k) { return ROLE[k] ? `<i class="ri" data-r="${k}" aria-hidden="true"></i>` : ""; }
 const TIERS = [
@@ -67,6 +69,8 @@ const ARCHETYPES = [
 ];
 const ARCH = Object.fromEntries(ARCHETYPES.map(a => [a.k, a]));
 const FORMATS = ["Bo1", "Bo3", "Bo5", "Block (2 games)", "Block (3 games)"];
+// Schedule entry types. Entries saved before types existed have no kind and count as scrims.
+const KINDS = [{ k: "scrim", name: "Scrim" }, { k: "match", name: "Tournament match" }, { k: "event", name: "Event" }];
 const STRENGTH_TAGS = ["Laning", "Teamfighting", "Roaming", "Vision control", "Shotcalling", "Mechanics", "Wave management", "Early game", "Scaling", "Objective setup", "Map awareness", "Communication", "Tilt resistance", "Wide champion pool"];
 const WEAK_TAGS = ["Overextends", "Low vision score", "Tilts easily", "Weak vs. ganks", "Small champion pool", "Passive laning", "Late rotations", "Teamfight positioning", "Coinflip plays", "Quiet on comms", "Falls off late", "Overforces"];
 
@@ -120,7 +124,7 @@ const EXAMPLE = {
 /* ---------- State ---------- */
 const COLS = ["players", "comps", "scrims", "avail", "fearless", "scouting", "counters"];
 const VIEWS = ["roster", "team", "comps", "draft", "scouting", "schedule", "stats"];
-const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], counters: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", pendingRender: false, flLanesOpen: false };
+const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], counters: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", statsKind: "scrim", pendingRender: false, flLanesOpen: false };
 const LS_KEY = "five-stack-board-v2";
 const ME_KEY = "fsb-me";
 
@@ -288,6 +292,10 @@ function dayInfo(date) {
   return { yes, ready: yes.length >= READY_N, startersIn };
 }
 function cntText(n) { return n > READY_N ? `${READY_N}+${n - READY_N}` : `${n}/${READY_N}`; }
+function kindOf(x) { return x.kind === "match" || x.kind === "event" ? x.kind : "scrim"; }
+function isGame(x) { return kindOf(x) !== "event"; }
+function entryName(x) { return kindOf(x) === "event" ? x.title || t("Event") : x.opponent || "TBD"; }
+function kindTag(x) { const k = kindOf(x); return k === "scrim" ? "" : ` <span class="kind-tag ${k}">${k === "match" ? I.trophy : I.pin}${esc(t(k === "match" ? "Tournament" : "Event"))}</span>`; }
 function scrimsOn(date) { return S.scrims.filter(x => x.date === date).sort((a, b) => String(a.time).localeCompare(String(b.time))); }
 function upcomingScrims() { const td = todayYmd(); return S.scrims.filter(x => x.date >= td).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)); }
 function pastScrims() { const td = todayYmd(); return S.scrims.filter(x => x.date < td).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)); }
@@ -421,6 +429,9 @@ function exampleBoard() {
     { id: "ex-s02", example: true, date: prev[1], time: "20:00", opponent: "Lowtide Gaming", format: "Bo1", result: "loss", score: "0-1", review: "Got poked out before every dragon.", vod: "", side: "red", compId: "ex-c2", ours: ["K'Sante", "Sejuani", "Syndra", "Jinx", "Lulu"], theirs: ["Jayce", "Nidalee", "Ziggs", "Varus", "Karma"] },
     { id: "ex-s0", example: true, date: prev[3], time: "19:30", opponent: "Northgate Esports", format: "Bo3", result: "loss", score: "1-2", review: "Lost both games where Azir got picked. Ban him next time.", vod: "", side: "red", compId: "ex-c1", ours: ["Ornn", "Vi", "Orianna", "Kai'Sa", "Rakan"], theirs: ["Gnar", "Lee Sin", "Azir", "Jinx", "Nautilus"] },
     { id: "ex-s00", example: true, date: prev[5], time: "18:00", opponent: "Lowtide Gaming", format: "Bo3", result: "win", score: "2-0", review: "Early dragon setups worked well.", vod: "", side: "blue", compId: "ex-c1", ours: ["Ornn", "Xin Zhao", "Ahri", "Kai'Sa", "Nautilus"], theirs: ["Jayce", "Nidalee", "Ziggs", "Varus", "Lux"] },
+    { id: "ex-s03", example: true, kind: "match", date: prev[2], time: "18:00", opponent: "Ironclad Five", tournament: "Spring Cup", format: "Bo3", result: "win", score: "2-1", review: "Group stage. Won the series on the scaling comp.", vod: "", side: "blue", compId: "ex-c1", ours: ["Ornn", "Vi", "Orianna", "Kai'Sa", "Rakan"], theirs: ["Gnar", "Lee Sin", "Syndra", "Jinx", "Nautilus"] },
+    { id: "ex-s4", example: true, kind: "event", date: days[2], time: "20:00", title: "VOD review", notes: "Go through the Northgate games before the rematch." },
+    { id: "ex-s5", example: true, kind: "match", date: days[6], time: "18:00", opponent: "Ironclad Five", tournament: "Spring Cup", format: "Bo3", notes: "Playoffs. Check-in opens 30 minutes before." },
     { id: "ex-s1", example: true, date: days[1], time: "19:00", opponent: "Northgate Esports", format: "Bo3", notes: "Fearless draft. Lobby invite from their captain." },
     { id: "ex-s2", example: true, date: days[3], time: "20:00", opponent: "Crimson Vale Academy", format: "Bo1", notes: "" },
     { id: "ex-s3", example: true, date: days[5], time: "17:00", opponent: "Lowtide Gaming", format: "Block (3 games)", notes: "Practice the protect-the-carry comp." },
@@ -718,7 +729,7 @@ function compCard(c) {
 
 /* ---------- Schedule ---------- */
 function viewSchedule() {
-  const acts = (S.players.length ? btn("copy-week", t("Copy for Discord"), I.copy) + btn("ics", t("Export calendar"), I.cal) : "") + (S.readOnly ? "" : btn("add-scrim", t("Add scrim"), I.plus, "primary"));
+  const acts = (S.players.length ? btn("copy-week", t("Copy for Discord"), I.copy) + btn("ics", t("Export calendar"), I.cal) : "") + (S.readOnly ? "" : btn("add-scrim", t("Add to schedule"), I.plus, "primary"));
   const top = pagehead(t("Schedule"), t("Everyone marks the days they can play. A day lights up as ready once {n} players are free.", { n: READY_N }), acts);
   if (!S.players.length) return top + `<div class="empty"><h3>${esc(t("Add your players first"))}</h3><p>${esc(t("The schedule lists everyone on the roster. Add your starters and subs on the Roster tab, then come back to mark availability."))}</p></div>`;
   const dates = weekDates(S.weekOffset), keys = dates.map(ymd), today = todayYmd();
@@ -741,60 +752,72 @@ function viewSchedule() {
     const label = `${p.name}, ${wd(dates[i])} ${fmt(dates[i])}: ${stLabel(s)}`;
     return `<button class="av ${s}" type="button" data-act="avail" data-pid="${esc(p.id)}" data-date="${k}" aria-label="${esc(label)}" title="${esc(label)}"${S.readOnly ? " disabled" : ""}>${s === "yes" ? I.check : s === "no" ? I.x : ""}</button>`;
   };
-  const scrimChip = (x, ready) => `<button class="scrim-chip${ready ? "" : " short"}" type="button" data-act="edit-scrim" data-id="${esc(x.id)}"${S.readOnly ? " disabled" : ""}><b>${esc(x.time || "--:--")}</b><span>${esc(x.opponent || "TBD")}</span></button>`;
+  const scrimChip = (x, ready) => { const k = kindOf(x); return `<button class="scrim-chip k-${k}${ready || k === "event" ? "" : " short"}" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" title="${esc(t(KINDS.find(e => e.k === k).name))}"${S.readOnly ? " disabled" : ""}><b>${k === "match" ? I.trophy : k === "event" ? I.pin : ""}${esc(x.time || (k === "event" ? t("All day") : "--:--"))}</b><span>${esc(entryName(x))}</span></button>`; };
   const head = keys.map((k, i) => `<th class="${info[i].ready ? "ready" : ""}${k === today ? " today" : ""}" scope="col">
       <div class="dh"><span class="dn">${esc(wd(dates[i]))}</span><span class="dd">${esc(fmt(dates[i]))}</span></div>
       ${info[i].ready ? `<span class="ready-tag">${I.bolt}${esc(t("Ready for scrims"))}</span>` : ""}
       <div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready)).join("")}</div>
-      ${S.readOnly ? "" : `<button class="add-day" type="button" data-act="add-scrim" data-date="${k}" aria-label="${esc(t("Add scrim on {day}", { day: wd(dates[i]) }))}">${I.plus}</button>`}</th>`).join("");
+      ${S.readOnly ? "" : `<button class="add-day" type="button" data-act="add-scrim" data-date="${k}" aria-label="${esc(t("Add to {day}", { day: wd(dates[i]) }))}">${I.plus}</button>`}</th>`).join("");
   const rows = ps.map((p, pi) => `<tr class="${p.id === me ? "me" : ""}${p.sub && (pi === 0 || !ps[pi - 1].sub) && p.id !== me ? " first-sub" : ""}"><th scope="row"><span class="who-cell"><span class="role">${ri(p.primaryRole)}${ROLE[p.primaryRole]?.code || ""}</span><span class="nm">${esc(p.name)}</span>${p.sub ? `<span class="subtag">${esc(t("Sub"))}</span>` : ""}</span></th>${keys.map((k, i) => `<td class="${info[i].ready ? "ready" : ""}">${cellBtn(p, k, i)}</td>`).join("")}</tr>`).join("");
   const foot = `<tr><th scope="row" class="label">${esc(t("Available"))}</th>${info.map(x => `<td class="${x.ready ? "ready" : ""}"><span class="cnt ${x.ready ? "ok" : x.yes.length >= READY_N - 1 ? "near" : ""}">${cntText(x.yes.length)}</span>${x.ready ? `<small>${esc(x.startersIn ? t("Starting five") : t("With subs"))}</small>` : ""}</td>`).join("")}</tr>`;
   const table = `<div class="scroll avail-wrap"><table class="avail"><thead><tr><th scope="col" class="corner label">${esc(t("Player"))}</th>${head}</tr></thead><tbody>${rows}</tbody><tfoot>${foot}</tfoot></table></div>`;
   const cards = `<div class="daycards">${keys.map((k, i) => `<section class="daycard${info[i].ready ? " ready" : ""}${k === today ? " today" : ""}">
       <header><div><span class="dn">${esc(wd(dates[i]))}</span> <span class="dd">${esc(fmt(dates[i]))}</span></div><div class="dc-right">${info[i].ready ? `<span class="ready-tag">${I.bolt}${esc(t("Ready"))}</span>` : ""}<span class="cnt ${info[i].ready ? "ok" : info[i].yes.length >= READY_N - 1 ? "near" : ""}">${cntText(info[i].yes.length)}</span></div></header>
-      ${scrimsOn(k).length || !S.readOnly ? `<div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready)).join("")}${S.readOnly ? "" : `<button class="add-day inline" type="button" data-act="add-scrim" data-date="${k}">${I.plus}${esc(t("Scrim"))}</button>`}</div>` : ""}
+      ${scrimsOn(k).length || !S.readOnly ? `<div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready)).join("")}${S.readOnly ? "" : `<button class="add-day inline" type="button" data-act="add-scrim" data-date="${k}">${I.plus}${esc(t("Add"))}</button>`}</div>` : ""}
       <div class="dc-players">${ps.map(p => `<div class="dc-p${p.id === me ? " me" : ""}"><span class="nm">${esc(p.name)}</span>${cellBtn(p, k, i)}</div>`).join("")}</div></section>`).join("")}</div>`;
   return top + bar + hint + table + cards + `<div class="two">${upcomingPanel()}${historyPanel()}</div>`;
 }
-function scrimMeta(x) { return [x.time, x.format ? t(x.format) : ""].filter(Boolean).join(" · "); }
+function scrimMeta(x) { return [x.time, kindOf(x) === "match" ? x.tournament : "", isGame(x) && x.format ? t(x.format) : ""].filter(Boolean).join(" · "); }
+function editLabel(x) { return kindOf(x) === "event" ? t("Edit {name}", { name: entryName(x) }) : t("Edit scrim against {team}", { team: x.opponent }); }
 function upcomingPanel() {
   const up = upcomingScrims();
-  return `<section class="panel"><h3>${esc(t("Upcoming scrims"))}</h3>${up.length ? `<ul class="matches">${up.map(x => { const d = dayInfo(x.date), dt = parseYmd(x.date); return `<li>
+  return `<section class="panel"><h3>${esc(t("Coming up"))}</h3>${up.length ? `<ul class="matches">${up.map(x => { const d = dayInfo(x.date), dt = parseYmd(x.date); return `<li>
       <div class="sdate"><b>${esc(wd(dt))}</b><span>${esc(fmt(dt))}</span></div>
-      <div class="smain"><b>${esc(x.opponent || "TBD")}</b><span>${esc(scrimMeta(x))}${x.notes ? " · " + esc(x.notes) : ""}</span></div>
+      <div class="smain"><b>${esc(entryName(x))}${kindTag(x)}</b><span>${esc(scrimMeta(x))}${x.notes ? (scrimMeta(x) ? " · " : "") + esc(x.notes) : ""}</span></div>
       <span class="flag ${d.ready ? "good" : d.yes.length >= READY_N - 1 ? "warn" : "bad"}">${esc(d.ready ? (d.startersIn ? t("Starting five") : t("With subs")) : t("{n} of {m} free", { n: d.yes.length, m: READY_N }))}</span>
-      ${S.readOnly ? "" : `<button class="iconbtn" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" aria-label="${esc(t("Edit scrim against {team}", { team: x.opponent }))}">${I.edit}</button>`}</li>`; }).join("")}</ul>` : `<span class="formhint">${esc(t("No scrims booked yet."))}</span>`}</section>`;
+      ${S.readOnly ? "" : `<button class="iconbtn" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" aria-label="${esc(editLabel(x))}">${I.edit}</button>`}</li>`; }).join("")}</ul>` : `<span class="formhint">${esc(t("Nothing booked yet. Add scrims, tournament matches and team events."))}</span>`}</section>`;
 }
 function resultTag(x) { return x.result ? `<span class="res ${x.result}">${esc(t({ win: "Win", loss: "Loss", draw: "Draw" }[x.result]))}${x.score ? " " + esc(x.score) : ""}</span>` : `<span class="res none">${esc(t("No result"))}</span>`; }
+// Scrims and tournament matches keep separate records
+function recordBlock(list, kind) {
+  const rec = recordOf(list), played = rec.w + rec.l + rec.d;
+  if (!played) return "";
+  const p = Math.round(rec.w / played * 100);
+  return `<div class="record${kind === "match" ? " tourney" : ""}"><span class="big"><span class="w">${rec.w}</span>–<span class="l">${rec.l}</span>${rec.d ? `–${rec.d}` : ""}</span><span class="hint">${esc(kind === "match" ? tn(played, "{p}% wins over {n} tournament match", "{p}% wins over {n} tournament matches", { p }) : t("{p}% wins over {n} scrims", { p, n: played }))}</span></div>`;
+}
 function historyPanel() {
-  const past = pastScrims();
-  const rec = recordOf(past);
-  const played = rec.w + rec.l + rec.d;
-  return `<section class="panel"><div class="panel-head"><h3>${esc(t("Match history"))}</h3>${played ? `<div class="record"><span class="big"><span class="w">${rec.w}</span>–<span class="l">${rec.l}</span>${rec.d ? `–${rec.d}` : ""}</span><span class="hint">${esc(t("{p}% wins over {n} scrims", { p: Math.round(rec.w / played * 100), n: played }))}</span></div>` : ""}</div>
+  const past = pastScrims().filter(isGame);
+  return `<section class="panel"><div class="panel-head"><h3>${esc(t("Match history"))}</h3>${recordBlock(past.filter(x => kindOf(x) === "scrim"), "scrim")}${recordBlock(past.filter(x => kindOf(x) === "match"), "match")}</div>
     ${past.length ? `<ul class="matches">${past.slice(0, 8).map(x => { const dt = parseYmd(x.date); return `<li>
       <div class="sdate"><b>${esc(wd(dt))}</b><span>${esc(fmt(dt))}</span></div>
-      <div class="smain"><b>${esc(x.opponent || "TBD")}</b><span>${x.review ? esc(x.review) : esc(scrimMeta(x))}${x.vod ? ` · <a href="${esc(safeUrl(x.vod))}" target="_blank" rel="noopener">VOD</a>` : ""}</span></div>
+      <div class="smain"><b>${esc(x.opponent || "TBD")}${kindTag(x)}</b><span>${x.review ? esc(x.review) : esc(scrimMeta(x))}${x.vod ? ` · <a href="${esc(safeUrl(x.vod))}" target="_blank" rel="noopener">VOD</a>` : ""}</span></div>
       ${resultTag(x)}
-      ${S.readOnly ? "" : `<button class="iconbtn" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" aria-label="${esc(t("Edit scrim against {team}", { team: x.opponent }))}">${I.edit}</button>`}</li>`; }).join("")}</ul>` : `<span class="formhint">${esc(t("Past scrims show up here. Add the result and a short review after each one."))}</span>`}</section>`;
+      ${S.readOnly ? "" : `<button class="iconbtn" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" aria-label="${esc(editLabel(x))}">${I.edit}</button>`}</li>`; }).join("")}</ul>` : `<span class="formhint">${esc(t("Past scrims show up here. Add the result and a short review after each one."))}</span>`}</section>`;
 }
 function safeUrl(u) { return /^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "#"; }
 
 function editScrim(id, date) {
   const x = id ? S.scrims.find(s => s.id === id) : null;
   const d = x || { date: date || todayYmd(), time: "19:00", format: "Bo3" };
+  const kind = kindOf(d);
   const radio = (v, label) => `<label><input type="radio" name="sres" value="${v}"${(d.result || "") === v ? " checked" : ""}>${esc(label)}</label>`;
-  openSheet(x ? t("Scrim vs {team}", { team: x.opponent || "TBD" }) : t("Add scrim"), `
-  <fieldset><legend>${esc(t("Scrim"))}</legend>
-    <label class="f"><span>${esc(t("Opponent"))}</span><input id="sOpp" name="opp" required value="${esc(d.opponent || "")}" placeholder="${esc(t("Team name"))}" list="oppList"></label>
+  const title = !x ? t("Add to schedule") : kind === "event" ? entryName(x) : t(kind === "match" ? "Tournament match vs {team}" : "Scrim vs {team}", { team: x.opponent || "TBD" });
+  openSheet(title, `
+  <fieldset><legend>${esc(t("Details"))}</legend>
+    <div class="f"><span>${esc(t("Type"))}</span><div class="radio-row">${KINDS.map(k => `<label><input type="radio" name="skind" value="${k.k}"${kind === k.k ? " checked" : ""}>${esc(t(k.name))}</label>`).join("")}</div></div>
+    <label class="f" data-for="game"><span>${esc(t("Opponent"))}</span><input id="sOpp" name="opp" required value="${esc(d.opponent || "")}" placeholder="${esc(t("Team name"))}" list="oppList"></label>
     <datalist id="oppList">${[...new Set(S.scrims.map(s => s.opponent).filter(Boolean))].map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>
+    <label class="f" data-for="match"><span>${esc(t("Tournament"))}</span><input id="sTour" name="stour" value="${esc(d.tournament || "")}" placeholder="${esc(t("e.g. Spring Cup, group stage"))}" list="tourList" maxlength="80"></label>
+    <datalist id="tourList">${[...new Set(S.scrims.map(s => s.tournament).filter(Boolean))].map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>
+    <label class="f" data-for="event"><span>${esc(t("Name"))}</span><input id="sTitle" name="stitle" value="${esc(d.title || "")}" placeholder="${esc(t("e.g. Qualifier day, LAN, VOD review"))}" maxlength="80"></label>
     <div class="frow"><label class="f"><span>${esc(t("Date"))}</span><input id="sDate" name="sdate" type="date" required value="${esc(d.date)}"></label>
     <label class="f"><span>${esc(t("Start time"))}</span><input id="sTime" name="stime" type="time" value="${esc(d.time || "")}"></label>
-    <label class="f"><span>${esc(t("Format"))}</span><select id="sFmt" name="sfmt">${FORMATS.map(f => opt(f, t(f), d.format === f)).join("")}</select></label></div>
+    <label class="f" data-for="game"><span>${esc(t("Format"))}</span><select id="sFmt" name="sfmt">${FORMATS.map(f => opt(f, t(f), d.format === f)).join("")}</select></label></div>
     <p class="formhint" id="sAvail"></p>
     <label class="f"><span>${esc(t("Notes"))}</span><textarea id="sNotes" name="snotes" rows="2" placeholder="${esc(t("e.g. Fearless draft, lobby details"))}">${esc(d.notes || "")}</textarea></label>
   </fieldset>
-  <fieldset><legend>${esc(t("Result"))}</legend>
-    <p class="formhint">${esc(t("Fill this in after the scrim. It feeds the match history and your record against this team."))}</p>
+  <fieldset data-for="game"><legend>${esc(t("Result"))}</legend>
+    <p class="formhint">${esc(t("Fill this in after the game. It feeds the match history and your record against this team."))}</p>
     <div class="frow"><div class="f"><span>${esc(t("Outcome"))}</span><div class="radio-row">${radio("", t("Not played"))}${radio("win", t("Win"))}${radio("loss", t("Loss"))}${radio("draw", t("Draw"))}</div></div>
     <label class="f"><span>${esc(t("Score"))}</span><input id="sScore" name="sscore" value="${esc(d.score || "")}" placeholder="2-1" maxlength="12"></label></div>
     <div class="frow"><label class="f"><span>${esc(t("Our side"))}</span><select id="sSide" name="sside">${opt("", "—", !d.side)}${opt("blue", t("Blue side"), d.side === "blue")}${opt("red", t("Red side"), d.side === "red")}</select></label>
@@ -806,21 +829,31 @@ function editScrim(id, date) {
     <label class="f"><span>${esc(t("VOD link"))}</span><input id="sVod" name="svod" type="url" value="${esc(d.vod || "")}" placeholder="https://"></label>
   </fieldset>`, {
     onSubmit: async (f) => {
-      const opponent = f.opp.value.trim();
-      if (!opponent) { toast(t("Add the opponent's name before saving.")); f.opp.focus(); return false; }
-      if (!f.sdate.value) { toast(t("Pick a date for the scrim.")); f.sdate.focus(); return false; }
+      const k = (f.querySelector('[name="skind"]:checked') || {}).value || "scrim";
+      const opponent = f.opp.value.trim(), name = f.stitle.value.trim();
+      if (k === "event" && !name) { toast(t("Give the event a name before saving.")); f.stitle.focus(); return false; }
+      if (k !== "event" && !opponent) { toast(t("Add the opponent's name before saving.")); f.opp.focus(); return false; }
+      if (!f.sdate.value) { toast(t("Pick a date first.")); f.sdate.focus(); return false; }
       const res = (f.querySelector('[name="sres"]:checked') || {}).value || "";
-      const data = { date: f.sdate.value, time: f.stime.value, opponent, format: f.sfmt.value, notes: f.snotes.value.trim(), result: res, score: f.sscore.value.trim(), review: f.sreview.value.trim(), vod: f.svod.value.trim(),
-        side: f.sside.value, compId: f.scomp.value, ours: parsePicks(f.sours.value), theirs: parsePicks(f.stheirs.value) };
+      const data = k === "event" ? { kind: k, date: f.sdate.value, time: f.stime.value, title: name, notes: f.snotes.value.trim() }
+        : { kind: k, date: f.sdate.value, time: f.stime.value, opponent, format: f.sfmt.value, notes: f.snotes.value.trim(), result: res, score: f.sscore.value.trim(), review: f.sreview.value.trim(), vod: f.svod.value.trim(),
+          side: f.sside.value, compId: f.scomp.value, ours: parsePicks(f.sours.value), theirs: parsePicks(f.stheirs.value) };
+      if (k === "match") data.tournament = f.stour.value.trim();
       if (x && x.example) data.example = true;
       const ok = await writeDoc("scrims", x ? x.id : uid("s-"), data);
-      if (ok) toast(x ? t("Scrim updated") : t("Scrim vs {team} added", { team: opponent }));
+      if (ok) toast(x ? t("Schedule updated") : k === "event" ? t("{name} added", { name }) : t(k === "match" ? "Tournament match vs {team} added" : "Scrim vs {team} added", { team: opponent }));
       return ok;
     },
-    onDelete: x ? async () => { const ok = await deleteDoc("scrims", x.id); if (ok) toast(t("Scrim removed")); return ok; } : null,
-    deleteLabel: t("Remove scrim"),
+    onDelete: x ? async () => { const ok = await deleteDoc("scrims", x.id); if (ok) toast(t("Removed from schedule")); return ok; } : null,
+    deleteLabel: t("Remove from schedule"),
   });
   const form = document.getElementById("sheetForm");
+  // Show only the fields that fit the chosen type
+  const showKind = () => {
+    const k = (form.querySelector('[name="skind"]:checked') || {}).value || "scrim";
+    form.querySelectorAll("[data-for]").forEach(el => { const w = el.dataset.for; el.hidden = !(w === k || (w === "game" && k !== "event")); });
+  };
+  form.querySelectorAll('[name="skind"]').forEach(r => r.addEventListener("change", showKind)); showKind();
   const showAvail = () => { const k = form.sdate.value; const el = document.getElementById("sAvail"); if (!k) { el.textContent = ""; return; } const di = dayInfo(k); el.innerHTML = di.ready ? `<span class="flag good">${esc(t("{n} players free that day", { n: di.yes.length }))}${di.startersIn ? ", " + esc(t("starting five ready")) : ""}</span>` : `<span class="flag ${di.yes.length >= READY_N - 1 ? "warn" : "bad"}">${esc(t("Only {n} of {m} free that day", { n: di.yes.length, m: READY_N }))}${di.yes.length ? ": " + esc(di.yes.map(p => p.name).join(", ")) : ""}</span>`; };
   form.sdate.addEventListener("change", showAvail); showAvail();
 }
@@ -832,7 +865,8 @@ function weekSummary() {
     const di = dayInfo(k), sc = scrimsOn(k);
     const missing = S.players.filter(p => !p.sub && availOf(p.id, k) !== "yes").map(p => p.name);
     let line = `${wd(dates[i])} ${fmt(dates[i])}: ${di.ready ? "✅ " + t("Ready") : "⏳ " + cntText(di.yes.length)}`;
-    if (sc.length) line += " · " + sc.map(x => `${x.time || ""} vs ${x.opponent}${x.format ? " (" + t(x.format) + ")" : ""}`.trim()).join(", ");
+    if (sc.length) line += " · " + sc.map(x => kindOf(x) === "event" ? `📌 ${x.time || ""} ${entryName(x)}`.replace("  ", " ")
+      : `${kindOf(x) === "match" ? "🏆 " : ""}${x.time || ""} vs ${x.opponent}${x.format ? " (" + t(x.format) + ")" : ""}${kindOf(x) === "match" && x.tournament ? " · " + x.tournament : ""}`.trim()).join(", ");
     if (!di.ready && missing.length && missing.length <= 3) line += " · " + t("missing: {names}", { names: missing.join(", ") });
     out.push(line);
   });
@@ -847,23 +881,34 @@ async function copyText(text) {
 }
 function downloadIcs() {
   const up = upcomingScrims();
-  if (!up.length) { toast(t("No upcoming scrims to export.")); return; }
+  if (!up.length) { toast(t("Nothing coming up to export.")); return; }
   const pad = (n) => String(n).padStart(2, "0");
   const stamp = (d) => `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
   const escIcs = (s) => String(s || "").replace(/[\\;,]/g, m => "\\" + m).replace(/\n/g, "\\n");
+  const day = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
   const evs = up.map(x => {
+    const k = kindOf(x), base = ["BEGIN:VEVENT", `UID:${x.id}@five-stack-board`, `DTSTAMP:${stamp(new Date())}`];
+    if (k === "event") {
+      // Events without a start time are all-day; with one they get two hours
+      const start = parseYmd(x.date);
+      let when;
+      if (x.time) { const [h, m] = x.time.split(":").map(Number); start.setHours(h || 0, m || 0, 0, 0); when = [`DTSTART:${stamp(start)}`, `DTEND:${stamp(new Date(start.getTime() + 2 * 3600e3))}`]; }
+      else { const end = new Date(start); end.setDate(end.getDate() + 1); when = [`DTSTART;VALUE=DATE:${day(start)}`, `DTEND;VALUE=DATE:${day(end)}`]; }
+      return [...base, ...when, `SUMMARY:${escIcs(entryName(x))}`, x.notes ? `DESCRIPTION:${escIcs(x.notes)}` : "", "END:VEVENT"].filter(Boolean).join("\r\n");
+    }
     const [h, m] = (x.time || "19:00").split(":").map(Number);
     const start = parseYmd(x.date); start.setHours(h || 0, m || 0, 0, 0);
     const hours = /Bo5/.test(x.format) ? 4 : /Bo3|3 games/.test(x.format) ? 3 : /2 games/.test(x.format) ? 2 : 1;
     const end = new Date(start.getTime() + hours * 3600e3);
-    return ["BEGIN:VEVENT", `UID:${x.id}@five-stack-board`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`, `SUMMARY:${escIcs(`Scrim vs ${x.opponent}${x.format ? " (" + x.format + ")" : ""}`)}`, x.notes ? `DESCRIPTION:${escIcs(x.notes)}` : "", "END:VEVENT"].filter(Boolean).join("\r\n");
+    const what = k === "match" ? `${x.tournament || "Tournament"}: vs ${x.opponent}` : `Scrim vs ${x.opponent}`;
+    return [...base, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`, `SUMMARY:${escIcs(`${what}${x.format ? " (" + x.format + ")" : ""}`)}`, x.notes ? `DESCRIPTION:${escIcs(x.notes)}` : "", "END:VEVENT"].filter(Boolean).join("\r\n");
   });
   const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Five-Stack Board//EN", "CALSCALE:GREGORIAN", ...evs, "END:VCALENDAR"].join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
-  a.download = "scrims.ics"; document.body.appendChild(a); a.click();
+  a.download = "schedule.ics"; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  toast(tn(up.length, "{n} scrim exported", "{n} scrims exported"));
+  toast(tn(up.length, "{n} entry exported", "{n} entries exported"));
 }
 
 /* ---------- Stats ---------- */
@@ -883,12 +928,17 @@ function groupRec(list, keyOf) {
 }
 function viewStats() {
   const top = pagehead(t("Stats"), t("What's working in scrims: your record by side, comp, opponent and champion, and the enemy picks you lose to."));
-  const played = S.scrims.filter(x => x.result).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  const games = S.scrims.filter(x => x.result && isGame(x));
+  const hasMatches = games.some(x => kindOf(x) === "match");
+  const sk = hasMatches ? S.statsKind : "scrim";
+  const seg = hasMatches ? `<div class="seg stats-seg" role="group" aria-label="${esc(t("Which games"))}">${[["scrim", "Scrims"], ["match", "Tournament"], ["all", "All"]].map(([k, l]) => `<button type="button" data-act="stats-kind" data-val="${k}" aria-pressed="${sk === k}">${esc(t(l))}</button>`).join("")}</div>` : "";
+  const played = games.filter(x => sk === "all" || kindOf(x) === sk).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  if (!played.length && hasMatches) return top + seg + `<div class="empty"><h3>${esc(t("No results yet"))}</h3><p>${esc(t("Add results to past scrims on the Schedule tab to see them here."))}</p></div>`;
   if (!played.length) return top + `<div class="empty"><h3>${esc(t("No results yet"))}</h3><p>${esc(t("Open a past scrim on the Schedule tab and add the result, our side, the comp and both teams' picks. The stats build up from there."))}</p></div>`;
   const rec = recordOf(played), n = played.length;
   let streak = 0; const first = played[0].result; for (const x of played) { if (x.result === first) streak++; else break; }
   const form = played.slice(0, 8).reverse().map(x => `<span class="res ${x.result}" title="${esc(x.opponent || "")} · ${esc(fmt(parseYmd(x.date)))}">${esc(t({ win: "W", loss: "L", draw: "D" }[x.result]))}</span>`).join("");
-  const summary = `<section class="panel stat-hero"><div class="record"><span class="big"><span class="w">${rec.w}</span>–<span class="l">${rec.l}</span>${rec.d ? `–${rec.d}` : ""}</span><span class="hint">${esc(t("{p}% wins over {n} scrims", { p: pct(rec.w, n), n }))}</span></div>
+  const summary = `<section class="panel stat-hero"><div class="record"><span class="big"><span class="w">${rec.w}</span>–<span class="l">${rec.l}</span>${rec.d ? `–${rec.d}` : ""}</span><span class="hint">${esc(sk === "match" ? tn(n, "{p}% wins over {n} tournament match", "{p}% wins over {n} tournament matches", { p: pct(rec.w, n) }) : sk === "all" ? t("{p}% wins over {n} games", { p: pct(rec.w, n), n }) : t("{p}% wins over {n} scrims", { p: pct(rec.w, n), n }))}</span></div>
     <div class="form"><span class="label">${esc(t("Form"))}</span><div class="form-row">${form}</div><span class="hint">${esc(first === "win" ? tn(streak, "{n} win in a row", "{n} wins in a row") : first === "loss" ? tn(streak, "{n} loss in a row", "{n} losses in a row") : "")}</span></div></section>`;
 
   const sides = groupRec(played, x => x.side);
@@ -908,7 +958,7 @@ function viewStats() {
   const theirs = groupRec(played, x => x.theirs || []).filter(e => champInfo(e.k) && e.l > 0).sort((a, b) => b.l - a.l || a.w - b.w);
   const enemyPanel = `<section class="panel"><h3>${esc(t("Enemy picks we lose to"))}</h3><p class="hint">${esc(t("Champions on the other team in scrims we lost. Good ban and counter-pick candidates."))}</p>${theirs.length ? `<ul class="list">${theirs.slice(0, 10).map(e => { const ans = countersFor(e.k).filter(c => c.pool.length).slice(0, 3); return `<li><span class="crow-name">${champIcon(e.k, "md")}<b>${esc(e.k)}</b>${ans.length ? ` <span class="hint">${esc(t("Answers in our pools: {list}", { list: ans.map(a => a.name).join(", ") }))}</span>` : ""}</span><span class="count">${esc(t("{l} of {n} lost", { l: e.l, n: e.w + e.l + e.d }))}</span></li>`; }).join("")}</ul>` : `<span class="formhint">${esc(t("Add their picks to scrim results you lost to see this."))}</span>`}</section>`;
 
-  return top + summary + `<div class="two">${sidePanel}${compPanel}</div><div class="two">${champPanel}${enemyPanel}</div>` + oppPanel;
+  return top + seg + summary + `<div class="two">${sidePanel}${compPanel}</div><div class="two">${champPanel}${enemyPanel}</div>` + oppPanel;
 }
 
 /* ---------- Fearless (part of the Draft page) ---------- */
@@ -956,9 +1006,9 @@ function viewScouting() {
   const v = scoutValues(), saved = scoutSaved();
   const dirty = !!S.scoutDraft && SCOUT_FIELDS.some(k => (S.scoutDraft[k] ?? (saved[k] || "")) !== (saved[k] || ""));
   const ro = S.readOnly;
-  const next = upcomingScrims()[0];
+  const next = upcomingScrims().filter(isGame)[0];
   const top = pagehead(t("Scouting"), t("Notes on the next team you play: what they're best at, where they're weak, and how we plan to win."));
-  const nextCard = next && !sameTeam(next.opponent, v.opponent) ? `<div class="notice"><span>${esc(t("Next scrim: {team} on {date}", { team: next.opponent, date: fmt(parseYmd(next.date), { weekday: "short", day: "numeric", month: "short" }) + (next.time ? ", " + next.time : "") }))}</span>${ro ? "" : btn("scout-use-next", t("Scout this team"), "", "small")}</div>` : "";
+  const nextCard = next && !sameTeam(next.opponent, v.opponent) ? `<div class="notice"><span>${esc(t(kindOf(next) === "match" ? "Next tournament match: {team} on {date}" : "Next scrim: {team} on {date}", { team: next.opponent, date: fmt(parseYmd(next.date), { weekday: "short", day: "numeric", month: "short" }) + (next.time ? ", " + next.time : "") }))}</span>${ro ? "" : btn("scout-use-next", t("Scout this team"), "", "small")}</div>` : "";
   const past = S.scrims.filter(x => sameTeam(x.opponent, v.opponent) && x.result);
   const rec = recordOf(past);
   const champs = threats();
@@ -1564,8 +1614,9 @@ document.addEventListener("click", (e) => {
   }
   if (act === "scout-save") return saveScouting();
   if (act === "scout-discard") { S.scoutDraft = null; render(); return; }
-  if (act === "scout-use-next") { const nx = upcomingScrims()[0]; if (nx) { S.scoutDraft = { ...(S.scoutDraft || {}), opponent: nx.opponent, matchDate: nx.date }; render(); } return; }
+  if (act === "scout-use-next") { const nx = upcomingScrims().filter(isGame)[0]; if (nx) { S.scoutDraft = { ...(S.scoutDraft || {}), opponent: nx.opponent, matchDate: nx.date }; render(); } return; }
   if (act === "filter") { S.roleFilter = el.dataset.val; render(); return; }
+  if (act === "stats-kind") { S.statsKind = el.dataset.val; render(); return; }
   if (act === "load-ex") return loadExamples();
   if (act === "clear-ex") return clearExamples();
   if (act === "add-row") { const rows = document.getElementById("crows"); rows.insertAdjacentHTML("beforeend", champRow({ role: document.getElementById("pRole").value, tier: "comfort" })); rows.lastElementChild.querySelector("input").focus(); return; }
