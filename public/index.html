@@ -366,6 +366,153 @@ legend { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; let
   @keyframes rise { from { transform: translateY(6px); } }
 }
 
+
+/* Tabs with six views */
+@media (max-width: 640px) { .tabs a { flex: 0 0 auto !important; padding: 7px 11px; } }
+
+/* Schedule */
+.weekbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.weeknav { display: flex; align-items: center; gap: 6px; }
+.weeklabel { display: grid; min-width: 150px; text-align: center; line-height: 1.25; }
+.weeklabel b { font-family: var(--font-display); font-size: 15px; }
+.weeklabel span { font-size: 12px; color: var(--muted); }
+.av-dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; border: 1px solid var(--line-strong); background: var(--surface-2); }
+.av-dot.yes { background: var(--good); border-color: var(--good); }
+.av-dot.no { background: var(--bad); border-color: var(--bad); }
+.avail-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); margin: 0; padding: 0; }
+table.avail { width: 100%; min-width: 720px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+table.avail th, table.avail td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--line); vertical-align: middle; transition: background .25s; }
+table.avail thead th { vertical-align: top; padding: 12px 6px 10px; position: relative; }
+table.avail th.corner, table.avail tbody th, table.avail tfoot th { text-align: left; padding-left: 14px; width: 168px; font-size: 13px; font-weight: 600; color: var(--muted); }
+table.avail thead th.corner { vertical-align: bottom; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+table.avail tbody th { color: var(--fg); }
+table.avail tr.first-sub > * { border-top: 1px dashed var(--line-strong); }
+table.avail tfoot > tr > * { border-bottom: 0; padding-block: 10px 12px; }
+table.avail .today .dn { color: var(--accent); }
+table.avail .today::after { content: ""; position: absolute; left: 20%; right: 20%; top: 0; height: 2px; border-radius: 0 0 2px 2px; background: var(--accent); }
+.dh { display: grid; gap: 0; line-height: 1.2; }
+.dn { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+.dd { font-size: 11.5px; color: var(--muted); }
+.who-cell { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.who-cell .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.who-cell .role { padding: 2px 5px 2px 4px; font-size: 9.5px; flex: none; }
+.pill.sub { color: var(--hex); border-color: color-mix(in srgb, var(--hex) 40%, transparent); background: color-mix(in srgb, var(--hex) 10%, transparent); font-size: 10.5px; padding: 1px 7px; }
+.av { width: 100%; max-width: 64px; height: 34px; border-radius: 9px; border: 1px dashed var(--line-strong); background: transparent; color: var(--faint); cursor: pointer; display: inline-grid; place-items: center; transition: background .15s, border-color .15s, transform .1s; }
+.av:hover:not(:disabled) { border-color: var(--muted); background: var(--surface-2); }
+.av:active:not(:disabled) { transform: scale(.95); }
+.av:disabled { cursor: default; }
+.av.yes { background: var(--good); border: 1px solid var(--good); color: var(--bg); }
+.av.no { background: var(--bad-soft); border: 1px solid color-mix(in srgb, var(--bad) 55%, transparent); color: var(--bad); }
+.av.yes:hover:not(:disabled) { background: var(--good); filter: brightness(1.08); }
+.av.no:hover:not(:disabled) { background: var(--bad-soft); filter: brightness(1.1); }
+.av svg.i { width: 16px; height: 16px; stroke-width: 2.6; }
+table.avail .ready { background: color-mix(in srgb, var(--good) 9%, transparent); }
+table.avail thead th.ready { box-shadow: inset 0 3px 0 var(--good); }
+.ready-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: var(--good); background: var(--good-soft); border-radius: 999px; padding: 2px 8px 2px 6px; white-space: nowrap; }
+.ready-badge svg.i { width: 12px; height: 12px; fill: currentColor; stroke-width: 1.5; }
+@media (prefers-reduced-motion: no-preference) {
+  table.avail thead th.ready .ready-badge, .daycard.ready .ready-badge { animation: glow 2.6s ease-in-out infinite; }
+  @keyframes glow { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 18%, transparent); } }
+}
+.dscrims { display: grid; gap: 4px; margin-top: 8px; }
+.scrim-chip { display: grid; gap: 0; text-align: left; padding: 5px 7px; border-radius: 8px; border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--fg); font-size: 11.5px; line-height: 1.25; cursor: pointer; min-width: 0; }
+.scrim-chip b { font-family: var(--font-mono); font-size: 10.5px; color: var(--accent); }
+.scrim-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scrim-chip.short { border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: var(--bad-soft); }
+.scrim-chip.short b { color: var(--bad); }
+.scrim-chip:disabled { cursor: default; }
+.add-day { position: absolute; top: 8px; right: 6px; width: 22px; height: 22px; border-radius: 7px; border: 0; background: transparent; color: var(--faint); cursor: pointer; display: grid; place-items: center; opacity: 0; transition: opacity .15s, background .15s; }
+.add-day svg.i { width: 14px; height: 14px; }
+table.avail thead th:hover .add-day, .add-day:focus-visible { opacity: 1; }
+.add-day:hover { background: var(--surface-3); color: var(--fg); }
+.add-day.inline { position: static; opacity: 1; width: auto; height: auto; display: inline-flex; gap: 4px; padding: 4px 8px; font-size: 12px; font-weight: 600; border: 1px dashed var(--line-strong); justify-self: start; }
+.cnt { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cnt.ok { color: var(--good); } .cnt.near { color: var(--warn); }
+table.avail tfoot small { display: block; font-size: 10.5px; color: var(--good); }
+.daycards { display: none; gap: 10px; }
+.daycard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 12px 14px; display: grid; gap: 10px; box-shadow: var(--shadow); }
+.daycard.ready { border-color: color-mix(in srgb, var(--good) 55%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 12%, transparent), var(--shadow); }
+.daycard.today header b { color: var(--accent); }
+.daycard header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.daycard header b { font-family: var(--font-display); font-size: 16px; }
+.daycard header span { color: var(--muted); font-size: 12.5px; }
+.daycard .ready-badge { margin: 0; }
+.dc-right { display: flex; align-items: center; gap: 8px; }
+.daycard .dscrims { margin: 0; display: flex; flex-wrap: wrap; }
+.dc-players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.dc-p { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 4px 10px; border-radius: 10px; background: var(--surface-2); min-width: 0; }
+.dc-p .nm { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.dc-p .nm small { color: var(--hex); font-weight: 600; }
+.dc-p .av { width: 44px; height: 32px; flex: none; }
+ul.scrims { list-style: none; margin: 0; padding: 0; display: grid; }
+ul.scrims li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+ul.scrims li:first-child { padding-top: 0; } ul.scrims li:last-child { border-bottom: 0; padding-bottom: 0; }
+.sdate { display: grid; line-height: 1.2; } .sdate b { font-family: var(--font-display); } .sdate span { font-size: 12px; color: var(--muted); }
+.smain { display: grid; min-width: 0; } .smain b { font-size: 14.5px; } .smain span { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) {
+  .avail-wrap { display: none; }
+  .daycards { display: grid; }
+  ul.scrims li { grid-template-columns: 56px minmax(0, 1fr) auto; }
+  ul.scrims li .flag { grid-column: 2 / -1; grid-row: 2; justify-self: start; }
+}
+
+/* Fearless */
+.fl-bar { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding: 12px 14px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.fl-bar .formhint { flex: 1 1 220px; }
+.switch { display: inline-flex; align-items: center; gap: 10px; border: 0; background: transparent; cursor: pointer; padding: 4px; border-radius: 10px; font-weight: 700; font-size: 14px; color: var(--fg); }
+.switch .knob { width: 42px; height: 24px; border-radius: 999px; background: var(--surface-3); border: 1px solid var(--line-strong); position: relative; transition: background .2s, border-color .2s; flex: none; }
+.switch .knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform .2s var(--ease), background .2s; }
+.switch[aria-checked="true"] .knob { background: var(--accent-btn); border-color: transparent; }
+.switch[aria-checked="true"] .knob::after { transform: translateX(18px); background: var(--accent-btn-fg); }
+.switch:disabled { cursor: default; opacity: .8; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); }
+.seg button { border: 0; background: transparent; color: var(--muted); font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 0 0 1px var(--line-strong); }
+.seg button:disabled { cursor: default; opacity: .55; }
+.fl-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.fl-col { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 12px; display: grid; gap: 12px; align-content: start; min-width: 0; box-shadow: var(--shadow); }
+.fl-col.dry { border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+.fl-col header { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.fl-left { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--muted); }
+.fl-left.good { color: var(--good); } .fl-left.warn { color: var(--warn); } .fl-left.bad { color: var(--bad); }
+.fl-player { display: grid; gap: 6px; }
+.fl-grid.off .chip { cursor: default; }
+.chip.locked { opacity: .5; text-decoration: line-through; text-decoration-color: var(--bad); background: var(--surface-2); border-style: solid; border-color: var(--line); filter: grayscale(.85); }
+.chip.locked .ci { box-shadow: none; }
+.chip.locked small { text-decoration: none; color: var(--bad); font-weight: 700; display: inline-block; }
+button.chip.locked:hover { opacity: .75; border-color: var(--bad); }
+.fl-game { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px; align-items: center; }
+.chip.locked-list { padding-right: 3px; }
+.chip.locked-list small { color: var(--accent); font-weight: 700; }
+.chip.locked-list.them small { color: var(--bad); }
+.chip .x { width: 20px; height: 20px; border-radius: 50%; border: 0; background: transparent; color: var(--faint); cursor: pointer; display: grid; place-items: center; padding: 0; }
+.chip .x svg.i { width: 12px; height: 12px; }
+.chip .x:hover { background: var(--surface-3); color: var(--fg); }
+.fl-add { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
+.fl-add input, .fl-add select { min-width: 0; background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 9px; padding: 8px 11px; }
+.fl-add input:focus, .fl-add select:focus { outline: none; border-color: var(--hex); }
+@media (max-width: 1100px) { .fl-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .fl-grid { grid-template-columns: minmax(0, 1fr); } .fl-add { grid-template-columns: 1fr 1fr; } .fl-add input { grid-column: 1 / -1; } .fl-game { grid-template-columns: 1fr; gap: 4px; } }
+
+/* Scouting */
+.scout-head { gap: 12px; }
+.scout-head .f input { background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 9px; padding: 9px 11px; width: 100%; min-width: 0; font-size: 15px; }
+.scout-head #sc_opponent { font-family: var(--font-display); font-weight: 600; font-size: 17px; }
+.scout-head .f input:focus { outline: none; border-color: var(--hex); box-shadow: 0 0 0 3px color-mix(in srgb, var(--hex) 22%, transparent); }
+.scout-opp { display: grid; gap: 2px; } .scout-opp b { font-family: var(--font-display); font-size: 22px; } .scout-opp span:last-child { color: var(--muted); }
+.scout-champs { display: grid; gap: 6px; }
+.scout-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.scout-box textarea { width: 100%; min-width: 0; min-height: 180px; resize: vertical; background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 10px; padding: 11px 12px; line-height: 1.55; }
+.scout-box textarea::placeholder { color: var(--faint); }
+.scout-box textarea:focus { outline: none; border-color: var(--hex); box-shadow: 0 0 0 3px color-mix(in srgb, var(--hex) 22%, transparent); }
+.scout-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; }
+.scout-text.na { color: var(--faint); }
+.savebar { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 12px 10px 16px; border-radius: var(--r-lg); background: var(--header); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--line-strong); box-shadow: var(--shadow-lift); }
+.savebar .right { display: flex; gap: 8px; margin-left: auto; }
+.unsaved { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--warn); }
+.unsaved::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+@media (max-width: 860px) { .scout-grid { grid-template-columns: 1fr; } .scout-box textarea { min-height: 130px; } }
+
 @media (max-width: 980px) {
   .bar { grid-template-columns: minmax(0, 1fr) auto; row-gap: 10px; }
   .tabs { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; }
@@ -413,7 +560,10 @@ legend { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; let
     <nav class="tabs" aria-label="Views">
       <a href="#roster" data-view="roster">Roster<span class="n" id="nPlayers"></span></a>
       <a href="#team" data-view="team">Team map</a>
-      <a href="#comps" data-view="comps">Draft comps<span class="n" id="nComps"></span></a>
+      <a href="#comps" data-view="comps">Comps<span class="n" id="nComps"></span></a>
+      <a href="#schedule" data-view="schedule">Schedule<span class="n" id="nScrims"></span></a>
+      <a href="#fearless" data-view="fearless">Fearless<span class="n" id="nLocked"></span></a>
+      <a href="#scouting" data-view="scouting">Scouting</a>
     </nav>
     <div class="hdr-right">
       <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Connecting…</span></div>
@@ -435,7 +585,7 @@ const ROLES = [
   { k: "top", code: "TOP", name: "Top" },
   { k: "jungle", code: "JGL", name: "Jungle" },
   { k: "mid", code: "MID", name: "Mid" },
-  { k: "bot", code: "BOT", name: "Bot" },
+  { k: "bot", code: "ADC", name: "ADC" },
   { k: "support", code: "SUP", name: "Support" },
 ];
 const ROLE = Object.fromEntries(ROLES.map(r => [r.k, r]));
@@ -449,6 +599,10 @@ const I = {
   swords: SVG('<path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/><path d="M9.5 6.5 6 3H3v3l3.5 3.5M5 14l4 4M7 17l-3 3M3 19l2 2"/>'),
   info: SVG('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
   note: SVG('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'),
+  cal: SVG('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  left: SVG('<path d="m15 18-6-6 6-6"/>'),
+  right: SVG('<path d="m9 18 6-6-6-6"/>'),
+  bolt: SVG('<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>'),
   key: SVG('<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14 9l2 2"/>'),
   lock: SVG('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
   trash: SVG('<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'),
@@ -503,6 +657,9 @@ const EXAMPLE = {
     { id: "ex-p5", example: true, name: "Pell", ign: "Pell#EUW", rank: "Emerald", div: "III", primaryRole: "support", secondaryRoles: ["jungle"], style: "Enabler",
       champions: [{ champ: "Nautilus", role: "support", tier: "main" }, { champ: "Rakan", role: "support", tier: "main" }, { champ: "Lulu", role: "support", tier: "comfort" }, { champ: "Braum", role: "support", tier: "comfort" }, { champ: "Thresh", role: "support", tier: "learning" }],
       strengths: ["Vision control", "Engage timing", "Communication"], weaknesses: ["Roams too early", "Small enchanter pool"], notes: "" },
+    { id: "ex-p6", example: true, name: "Juno", ign: "Juno#EUW", rank: "Platinum", div: "I", primaryRole: "mid", secondaryRoles: ["support", "bot"], sub: true, style: "Flexible",
+      champions: [{ champ: "Lux", role: "mid", tier: "comfort" }, { champ: "Viktor", role: "mid", tier: "comfort" }, { champ: "Karma", role: "support", tier: "main" }, { champ: "Seraphine", role: "support", tier: "comfort" }, { champ: "Ezreal", role: "bot", tier: "pocket" }],
+      strengths: ["Wide champion pool", "Communication"], weaknesses: ["Few scrims with the starters"], notes: "Sub for mid, support and ADC." },
   ],
   comps: [
     { id: "ex-c1", example: true, name: "Dive bot", archetype: "engage",
@@ -515,7 +672,9 @@ const EXAMPLE = {
 };
 
 /* ---------- State ---------- */
-const S = { roleFilter: "all", mode: "loading", players: [], comps: [], meta: {}, loaded: { players: false, comps: false }, readOnly: false, stale: false, view: "roster", error: "" };
+const COLS = ["players", "comps", "scrims", "avail", "fearless", "scouting"];
+const VIEWS = ["roster", "team", "comps", "schedule", "fearless", "scouting"];
+const S = { scrims: [], avail: [], fearless: [], scouting: [], weekOffset: 0, scoutDraft: null, roleFilter: "all", mode: "loading", players: [], comps: [], meta: {}, loaded: { players: false, comps: false }, readOnly: false, stale: false, view: "roster", error: "" };
 let db = null;
 const LS_KEY = "five-stack-board-v1";
 
@@ -545,11 +704,11 @@ function localLoad() {
   try { const raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
   return null;
 }
-function localPersist() { try { localStorage.setItem(LS_KEY, JSON.stringify({ players: S.players, comps: S.comps, meta: S.meta })); } catch (e) {} }
+function localPersist() { try { const o = { meta: S.meta }; COLS.forEach(c => { o[c] = S[c]; }); localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {} }
 
 function startLocal() {
-  const d = localLoad() || JSON.parse(JSON.stringify(EXAMPLE));
-  S.mode = "local"; S.players = d.players || []; S.comps = d.comps || []; S.meta = d.meta || {};
+  const d = localLoad() || exampleBoard();
+  S.mode = "local"; COLS.forEach(c => { S[c] = d[c] || []; }); S.meta = d.meta || {};
   S.loaded = { players: true, comps: true };
   render();
 }
@@ -559,16 +718,11 @@ function startDb() {
   const timer = setTimeout(() => { S.stale = true; render(); }, 10000);
   const done = () => { if (S.loaded.players && S.loaded.comps) { clearTimeout(timer); S.stale = false; } };
   const onErr = (e) => { clearTimeout(timer); S.error = "The team data can't be reached right now. Reopen the page to try again."; S.loaded.players = S.loaded.comps = true; render(); };
-  db.collection("players").onSnapshot(snap => {
-    S.players = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-    if (!snap.metadata.fromCache) S.loaded.players = true; else if (snap.size) S.loaded.players = true;
+  COLS.forEach(col => db.collection(col).onSnapshot(snap => {
+    S[col] = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+    if (col in S.loaded && (!snap.metadata.fromCache || snap.size)) S.loaded[col] = true;
     done(); render();
-  }, onErr);
-  db.collection("comps").onSnapshot(snap => {
-    S.comps = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-    if (!snap.metadata.fromCache || snap.size) S.loaded.comps = true;
-    done(); render();
-  }, onErr);
+  }, col in S.loaded ? onErr : () => {}));
   db.doc("team/meta").onSnapshot(snap => { S.meta = snap.exists ? { ...snap.data() } : {}; renderHeader(); }, () => {});
 }
 
@@ -585,7 +739,7 @@ async function apiFetch(force) {
   if (r.status === 503 && j && j.error) { S.error = j.error; render(); return; }
   if (!r.ok || !j) throw new Error("HTTP " + r.status);
   if (j.unchanged) return;
-  apiVersion = j.version; S.players = j.players || []; S.comps = j.comps || []; S.meta = j.meta || {};
+  apiVersion = j.version; COLS.forEach(c => { S[c] = j[c] || []; }); S.meta = j.meta || {};
   S.loaded = { players: true, comps: true }; S.stale = false; S.error = "";
   render();
 }
@@ -612,7 +766,7 @@ async function apiWrite(body) {
   poll(true); return true;
 }
 function openCodeSheet() {
-  openSheet("Unlock editing", `<p class="formhint">Anyone with the link can view the board. To add or change players and comps, enter your team's code. This device remembers it.</p>
+  openSheet("Unlock editing", `<p class="formhint">Anyone with the link can view the board. To make changes (players, comps, availability, scrims and scouting notes), enter your team's code. This device remembers it.</p>
     <label class="f"><span>Team code</span><input id="teamCode" name="tcode" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required placeholder="Ask your captain"></label>`, {
     onSubmit: async (f) => {
       const code = f.tcode.value.trim();
@@ -642,16 +796,16 @@ async function writeDoc(col, id, data) {
     try { await db.collection(col).doc(id).set(clean); return true; }
     catch (e) { if (e && e.code === "unavailable") { await new Promise(r => setTimeout(r, 600 + Math.random() * 600)); try { await db.collection(col).doc(id).set(clean); return true; } catch (e2) { handleWriteError(e2); return false; } } handleWriteError(e); return false; }
   }
-  const list = col === "players" ? S.players : S.comps;
+  const list = S[col];
   const i = list.findIndex(x => x.id === id); const row = { ...clean, id };
-  if (S.mode === "api") { const ok = await apiWrite({ action: "set", col, id, data: clean }); if (ok) { if (i >= 0) list[i] = row; else list.push(row); render(); } return ok; }
   if (i >= 0) list[i] = row; else list.push(row);
+  if (S.mode === "api") { render(); const ok = await apiWrite({ action: "set", col, id, data: clean }); if (!ok) render(); return ok; } // optimistic; a failed save re-syncs from the server
   localPersist(); render(); return true;
 }
 async function deleteDoc(col, id) {
   if (S.mode === "db") { try { await db.collection(col).doc(id).delete(); return true; } catch (e) { handleWriteError(e); return false; } }
-  if (S.mode === "api") { const ok = await apiWrite({ action: "delete", col, id }); if (ok) { if (col === "players") S.players = S.players.filter(x => x.id !== id); else S.comps = S.comps.filter(x => x.id !== id); render(); } return ok; }
-  if (col === "players") S.players = S.players.filter(x => x.id !== id); else S.comps = S.comps.filter(x => x.id !== id);
+  S[col] = S[col].filter(x => x.id !== id);
+  if (S.mode === "api") { render(); const ok = await apiWrite({ action: "delete", col, id }); if (!ok) render(); return ok; }
   localPersist(); render(); return true;
 }
 async function saveMeta(meta) {
@@ -661,15 +815,32 @@ async function saveMeta(meta) {
   else localPersist();
   renderHeader();
 }
+// Several writes at once: one request in API mode (chunks of 100), one by one elsewhere
+async function writeMany(ops) {
+  if (S.mode !== "api") {
+    for (const o of ops) { const ok = o.action === "delete" ? await deleteDoc(o.col, o.id) : await writeDoc(o.col, o.id, o.data); if (!ok) return false; }
+    return true;
+  }
+  const stamp = new Date().toISOString();
+  ops = ops.map(o => o.action === "delete" ? o : { ...o, data: { ...JSON.parse(JSON.stringify(o.data)), updatedAt: stamp } });
+  ops.forEach(o => { delete (o.data || {}).id; if (o.action === "delete") S[o.col] = S[o.col].filter(x => x.id !== o.id); else { const l = S[o.col]; const i = l.findIndex(x => x.id === o.id); const row = { ...o.data, id: o.id }; if (i >= 0) l[i] = row; else l.push(row); } });
+  render();
+  for (let i = 0; i < ops.length; i += 100) { if (!(await apiWrite({ action: "batch", ops: ops.slice(i, i + 100) }))) return false; }
+  return true;
+}
 async function loadExamples() {
-  for (const p of EXAMPLE.players) { if (!(await writeDoc("players", p.id, p))) return; }
-  for (const c of EXAMPLE.comps) { if (!(await writeDoc("comps", c.id, c))) return; }
-  toast("Example team loaded");
+  const ex = exampleBoard();
+  const ops = [];
+  for (const c of COLS) for (const row of ex[c]) {
+    if ((c === "scouting" || c === "fearless") && S[c].some(x => x.id === row.id)) continue; // never overwrite real notes or a live series
+    ops.push({ action: "set", col: c, id: row.id, data: row });
+  }
+  if (await writeMany(ops)) toast("Example team loaded");
 }
 async function clearExamples() {
-  const ex = [...S.players.filter(p => p.example).map(p => ["players", p.id]), ...S.comps.filter(c => c.example).map(c => ["comps", c.id])];
-  for (const [col, id] of ex) { if (!(await deleteDoc(col, id))) return; }
-  toast("Examples cleared");
+  const ops = [];
+  COLS.forEach(c => S[c].filter(x => x.example).forEach(x => ops.push({ action: "delete", col: c, id: x.id })));
+  if (await writeMany(ops)) toast("Examples cleared");
 }
 
 /* ---------- Analysis ---------- */
@@ -694,6 +865,8 @@ function compStats(comp) {
       else out.note = { cls: "good", text: TIER[entry.tier]?.name + " pick" };
       if (pl.primaryRole !== r.k && !(pl.secondaryRoles || []).includes(r.k)) flags.push({ cls: "warn", text: `${pl.name} is off-role at ${r.code}` });
     } else if (pk.champ && !pk.playerId) out.note = { cls: "warn", text: "No player assigned" };
+    const lk = lockedEntry(pk.champ);
+    if (lk) { out.note = { cls: "bad", text: `Used in game ${lk.game} (fearless)` }; flags.push({ cls: "bad", text: `${champName(pk.champ)} is locked by fearless draft` }); }
     perPick[r.k] = out;
   }
   const ids = ROLES.map(r => ((comp.picks || {})[r.k] || {}).playerId).filter(Boolean);
@@ -730,6 +903,8 @@ function renderHeader() {
   }
   document.getElementById("nPlayers").textContent = S.players.length ? S.players.length : "";
   document.getElementById("nComps").textContent = S.comps.length ? S.comps.length : "";
+  const up = upcomingScrims().length; document.getElementById("nScrims").textContent = up || "";
+  const sr = series(); document.getElementById("nLocked").textContent = sr.enabled && sr.locked.length ? sr.locked.length : "";
   document.querySelectorAll(".tabs a").forEach(a => { if (a.dataset.view === S.view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
 }
 
@@ -739,10 +914,14 @@ function render() {
   const ready = S.loaded.players && S.loaded.comps;
   if (S.error) { v.innerHTML = `<div class="banner warn">${esc(S.error)}</div>`; return; }
   if (!ready) { v.innerHTML = `<div class="skel" aria-busy="true"><span class="skel-note">${S.stale ? "The team data can't be reached yet. It will appear here as soon as it loads." : "Loading your roster and draft comps…"}</span><div class="line">${'<div class="sk slot-sk"></div>'.repeat(5)}</div><div class="grid">${'<div class="sk card-sk"></div>'.repeat(3)}</div></div>`; return; }
-  const hasEx = S.players.some(p => p.example) || S.comps.some(c => c.example);
+  const hasEx = COLS.some(c => S[c].some(x => x.example));
+  // Don't replace the view while someone is typing in it; render again once they leave the field
+  const ae = document.activeElement;
+  if (ae && v.contains(ae) && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) && v.dataset.shown === S.view) { S.pendingRender = true; return; }
+  S.pendingRender = false;
   const exBanner = hasEx && !S.readOnly ? `<div class="banner"><span>${I.info}<span>You're looking at an <b>example team</b>. Add your own teammates, then clear the examples.</span></span><button class="btn small" data-act="clear-ex" type="button">Clear examples</button></div>` : "";
   let body = "";
-  if (S.view === "team") body = viewTeam(); else if (S.view === "comps") body = viewComps(); else body = viewRoster();
+  if (S.view === "team") body = viewTeam(); else if (S.view === "comps") body = viewComps(); else if (S.view === "schedule") body = viewSchedule(); else if (S.view === "fearless") body = viewFearless(); else if (S.view === "scouting") body = viewScouting(); else body = viewRoster();
   v.innerHTML = exBanner + body;
   if (v.dataset.shown === S.view) v.classList.add("settled"); else { v.classList.remove("settled"); v.dataset.shown = S.view; }
 }
@@ -755,8 +934,8 @@ function viewEmptyRoster() {
 function lineupStrip() {
   const ps = S.players;
   return `<div class="lineup">${ROLES.map(r => {
-    const mains = ps.filter(p => p.primaryRole === r.k);
-    const subs = ps.filter(p => (p.secondaryRoles || []).includes(r.k) && p.primaryRole !== r.k);
+    const mains = ps.filter(p => p.primaryRole === r.k && !p.sub);
+    const subs = ps.filter(p => !mains.includes(p) && (p.primaryRole === r.k || (p.secondaryRoles || []).includes(r.k)));
     if (!mains.length) return `<div class="slot open"><div class="slot-top"><span class="role">${ri(r.k)}${r.code}</span><span class="state bad" title="No main"></span></div><div class="who">Open</div><div class="meta">${subs.length ? "Can fill: " + esc(subs.map(s => s.name).join(", ")) : "Nobody plays this yet"}</div></div>`;
     return `<div class="slot"><div class="slot-top"><span class="role">${ri(r.k)}${r.code}</span><span class="state${subs.length ? "" : " warn"}" title="${subs.length ? "Covered with backup" : "No backup"}"></span></div><div class="who">${esc(mains.map(m => m.name).join(" / "))}</div><div class="meta">${subs.length ? "Backup: " + esc(subs.map(s => s.name).join(", ")) : "No backup"}</div></div>`;
   }).join("")}</div>`;
@@ -778,7 +957,7 @@ function playerCard(p) {
   const pool = TIERS.map(t => {
     const cs = (p.champions || []).filter(c => (c.tier || "comfort") === t.k);
     if (!cs.length) return "";
-    return `<div class="tier-row"><span class="label">${t.name}</span><div class="chips">${cs.map(c => `<span class="chip ${t.k}">${champIcon(c.champ)}${esc(champName(c.champ))}${c.role && c.role !== p.primaryRole && ROLE[c.role] ? `<small>${ROLE[c.role].code}</small>` : ""}</span>`).join("")}</div></div>`;
+    return `<div class="tier-row"><span class="label">${t.name}</span><div class="chips">${cs.map(c => `<span class="chip ${t.k}${lockedEntry(c.champ) ? " locked" : ""}"${lockedEntry(c.champ) ? ` title="Locked by fearless draft in game ${lockedEntry(c.champ).game}"` : ""}>${champIcon(c.champ)}${esc(champName(c.champ))}${c.role && c.role !== p.primaryRole && ROLE[c.role] ? `<small>${ROLE[c.role].code}</small>` : ""}</span>`).join("")}</div></div>`;
   }).join("");
   const li = (arr) => arr && arr.length ? arr.map(x => `<li>${esc(x)}</li>`).join("") : `<li class="none">None added</li>`;
   const rk = rankText(p);
@@ -786,7 +965,7 @@ function playerCard(p) {
     <div class="card-head">
       <span class="role big">${r ? ri(r.k) + r.code : "—"}</span>
       <div><h3>${esc(p.name || "Unnamed")}${p.ign ? `<span class="ign">${esc(p.ign)}</span>` : ""}${p.example ? `<span class="tag-ex">Example</span>` : ""}</h3>
-        <div class="pills">${rk ? `<span class="pill rank" data-rk="${esc(String(p.rank || "").toLowerCase())}">${esc(rk)}</span>` : ""}${p.style ? `<span class="pill">${esc(p.style)}</span>` : ""}${secs.length ? `<span class="pill">Also ${secs.join(", ")}</span>` : ""}</div>
+        <div class="pills">${p.sub ? `<span class="pill sub">Sub</span>` : ""}${rk ? `<span class="pill rank" data-rk="${esc(String(p.rank || "").toLowerCase())}">${esc(rk)}</span>` : ""}${p.style ? `<span class="pill">${esc(p.style)}</span>` : ""}${secs.length ? `<span class="pill">Also ${secs.join(", ")}</span>` : ""}</div>
       </div>
       ${S.readOnly ? "" : `<button class="iconbtn" data-act="edit-player" data-id="${esc(p.id)}" type="button" aria-label="Edit ${esc(p.name)}" title="Edit">${I.edit}</button>`}
     </div>
@@ -891,6 +1070,215 @@ function compCard(c) {
     </div></article>`;
 }
 
+/* ---------- Dates ---------- */
+const DAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const READY_N = 5;
+function ymd(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function parseYmd(s) { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, (m || 1) - 1, d || 1); }
+function weekStart(offset) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + offset * 7); return d; }
+function weekDates(offset) { const s = weekStart(offset); return Array.from({ length: 7 }, (_, i) => { const d = new Date(s); d.setDate(s.getDate() + i); return d; }); }
+function fmtDate(d, opts) { try { return d.toLocaleDateString(undefined, opts || { day: "numeric", month: "short" }); } catch (e) { return ymd(d); } }
+function todayYmd() { return ymd(new Date()); }
+
+/* ---------- Schedule data ---------- */
+function squad() { return sortedPlayers().sort((a, b) => (a.sub ? 1 : 0) - (b.sub ? 1 : 0)); }
+function availId(date, pid) { return `${date}_${pid}`; }
+function availOf(pid, date) { const a = S.avail.find(x => x.id === availId(date, pid)); return a ? a.status : ""; }
+function dayInfo(date) {
+  const ps = S.players;
+  const yes = ps.filter(p => availOf(p.id, date) === "yes");
+  const no = ps.filter(p => availOf(p.id, date) === "no");
+  const starters = ps.filter(p => !p.sub);
+  const startersIn = starters.length >= 5 && starters.every(p => availOf(p.id, date) === "yes");
+  return { yes, no, ready: yes.length >= READY_N, startersIn };
+}
+function scrimsOn(date) { return S.scrims.filter(x => x.date === date).sort((a, b) => String(a.time).localeCompare(String(b.time))); }
+function cntText(n) { return n > READY_N ? `${READY_N}+${n - READY_N}` : `${n}/${READY_N}`; }
+function upcomingScrims() { const t = todayYmd(); return S.scrims.filter(x => x.date >= t).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)); }
+
+/* ---------- Fearless data ---------- */
+function series() { const f = S.fearless.find(x => x.id === "series"); return { enabled: false, game: 1, locked: [], ...(f || {}) }; }
+function lockedEntry(champ) {
+  if (!champ) return null;
+  const s = series(); if (!s.enabled) return null;
+  const n = champName(champ).toLowerCase();
+  return (s.locked || []).find(l => champName(l.champ).toLowerCase() === n) || null;
+}
+async function saveSeries(next) { const cur = S.fearless.find(x => x.id === "series"); const data = { ...series(), ...next }; delete data.id; if (cur && cur.example && next.example === undefined) data.example = true; return writeDoc("fearless", "series", data); }
+
+/* ---------- Scouting data ---------- */
+const SCOUT_FIELDS = ["opponent", "matchDate", "powerPicks", "weaknesses", "gameplan"];
+function scoutSaved() { return S.scouting.find(x => x.id === "next") || {}; }
+function scoutValues() { return { ...Object.fromEntries(SCOUT_FIELDS.map(k => [k, scoutSaved()[k] || ""])), ...(S.scoutDraft || {}) }; }
+function mentionedChamps(text) {
+  const t = " " + String(text || "").toLowerCase().replace(/\.(?=\s|$)/g, " ").replace(/[^a-z0-9'.& ]+/g, " ") + " ";
+  const found = [];
+  for (const c of CHAMPS.values()) { const n = c.name.toLowerCase(); if (t.includes(" " + n + " ") && !found.includes(c.name)) found.push(c.name); }
+  return found.slice(0, 16);
+}
+
+/* ---------- Example board ---------- */
+function exampleBoard() {
+  const b = JSON.parse(JSON.stringify(EXAMPLE));
+  const days = weekDates(0).map(ymd);
+  // Who is free when: Tue and Sat reach five, Thu is one short
+  const pattern = { "ex-p1": "yyyyny ", "ex-p2": "nyyyyyn", "ex-p3": "yy yyyn", "ex-p4": "ny nyy ", "ex-p5": "yyyy yy", "ex-p6": " y nyyy" };
+  b.avail = [];
+  Object.entries(pattern).forEach(([pid, pat]) => [...pat].forEach((ch, i) => { if (ch === "y" || ch === "n") b.avail.push({ id: availId(days[i], pid), example: true, date: days[i], playerId: pid, status: ch === "y" ? "yes" : "no" }); }));
+  b.scrims = [
+    { id: "ex-s1", example: true, date: days[1], time: "19:00", opponent: "Northgate Esports", format: "Bo3", notes: "Fearless draft. Lobby invite from their captain." },
+    { id: "ex-s2", example: true, date: days[3], time: "20:00", opponent: "Crimson Vale Academy", format: "Bo1", notes: "" },
+    { id: "ex-s3", example: true, date: days[5], time: "17:00", opponent: "Lowtide Gaming", format: "Block (3 games)", notes: "Practice protect-the-carry comp." },
+  ];
+  b.fearless = [{ id: "series", example: true, enabled: true, game: 2, locked: [
+    { champ: "Ornn", game: 1, side: "us" }, { champ: "Vi", game: 1, side: "us" }, { champ: "Orianna", game: 1, side: "us" }, { champ: "Kai'Sa", game: 1, side: "us" }, { champ: "Rakan", game: 1, side: "us" },
+    { champ: "Azir", game: 1, side: "them" }, { champ: "Lee Sin", game: 1, side: "them" }, { champ: "Jinx", game: 1, side: "them" },
+  ] }];
+  b.scouting = [{ id: "next", example: true, opponent: "Northgate Esports", matchDate: days[1],
+    powerPicks: "Azir and Taliyah in mid: their mid player is a control mage one-trick\nLee Sin and Xin Zhao for early jungle pressure\nBan: Azir, Lee Sin, Kalista",
+    weaknesses: "Bot lane gets caught without vision after 15 minutes\nTop plays weakside and rarely teleports bot\nSlow to contest the first Void Grubs",
+    gameplan: "Play for early dragons around our bot lane with Vi and Rakan\nBan Azir; first-pick Orianna if it's open\nGroup mid after first tower and force the fight at second dragon" }];
+  return b;
+}
+
+/* ---------- Schedule view ---------- */
+function viewSchedule() {
+  const top = `<div class="toolbar"><div><h2>Scrim schedule</h2><p>Everyone marks the days they can play. A day lights up as ready once ${READY_N} players are free.</p></div>${S.readOnly ? "" : `<div class="actions"><button class="btn primary" data-act="add-scrim" type="button">${I.plus}Add scrim</button></div>`}</div>`;
+  if (!S.players.length) return top + `<div class="empty"><span class="ico">${I.cal}</span><h3>Add your players first</h3><p>The schedule lists everyone on the roster. Add your starters and subs on the Roster tab, then come back to mark availability.</p></div>`;
+  const dates = weekDates(S.weekOffset), keys = dates.map(ymd), today = todayYmd();
+  const ps = squad();
+  const info = keys.map(dayInfo);
+  const range = `${fmtDate(dates[0])} – ${fmtDate(dates[6], { day: "numeric", month: "short", year: "numeric" })}`;
+  const readyCount = info.filter(x => x.ready).length;
+  const bar = `<div class="weekbar">
+    <div class="weeknav"><button class="iconbtn" type="button" data-act="week" data-val="-1" aria-label="Previous week">${I.left}</button>
+      <div class="weeklabel"><b>${esc(range)}</b><span>${S.weekOffset === 0 ? "This week" : S.weekOffset === 1 ? "Next week" : S.weekOffset === -1 ? "Last week" : (S.weekOffset > 0 ? `In ${S.weekOffset} weeks` : `${-S.weekOffset} weeks ago`)}</span></div>
+      <button class="iconbtn" type="button" data-act="week" data-val="1" aria-label="Next week">${I.right}</button>
+      ${S.weekOffset ? `<button class="btn small" type="button" data-act="week" data-val="0">Today</button>` : ""}</div>
+    <div class="legend"><span><i class="av-dot yes"></i>Available</span><span><i class="av-dot no"></i>Busy</span><span><i class="av-dot"></i>Not set</span>${readyCount ? `<span class="flag good">${readyCount} day${readyCount > 1 ? "s" : ""} ready</span>` : ""}</div></div>`;
+  const hint = S.readOnly ? (S.mode === "api" ? `<p class="formhint">Unlock editing to mark your availability.</p>` : "") : `<p class="formhint">Tap a box to switch between available, busy and not set.</p>`;
+
+  const cellBtn = (p, k, i) => {
+    const st = availOf(p.id, k);
+    const label = `${p.name}, ${DAY_SHORT[i]} ${fmtDate(dates[i])}: ${st === "yes" ? "available" : st === "no" ? "busy" : "not set"}`;
+    return `<button class="av ${st}" type="button" data-act="avail" data-pid="${esc(p.id)}" data-date="${k}" aria-label="${esc(label)}" title="${esc(label)}"${S.readOnly ? " disabled" : ""}>${st === "yes" ? I.check : st === "no" ? I.x : ""}</button>`;
+  };
+  const scrimChip = (x, ready) => `<button class="scrim-chip${ready ? "" : " short"}" type="button" data-act="edit-scrim" data-id="${esc(x.id)}"${S.readOnly ? " disabled" : ""}><b>${esc(x.time || "--:--")}</b><span>${esc(x.opponent || "TBD")}</span></button>`;
+  const head = keys.map((k, i) => `<th class="${info[i].ready ? "ready" : ""}${k === today ? " today" : ""}" scope="col">
+      <div class="dh"><span class="dn">${DAY_SHORT[i]}</span><span class="dd">${esc(fmtDate(dates[i]))}</span></div>
+      ${info[i].ready ? `<span class="ready-badge">${I.bolt}Ready for scrims</span>` : ""}
+      <div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready)).join("")}</div>
+      ${S.readOnly ? "" : `<button class="add-day" type="button" data-act="add-scrim" data-date="${k}" aria-label="Add scrim on ${DAY_SHORT[i]}">${I.plus}</button>`}</th>`).join("");
+  const rows = ps.map((p, pi) => `<tr class="${p.sub && (pi === 0 || !ps[pi - 1].sub) ? "first-sub" : ""}"><th scope="row"><span class="who-cell">${p.primaryRole ? `<span class="role">${ri(p.primaryRole)}${ROLE[p.primaryRole]?.code || ""}</span>` : ""}<span class="nm">${esc(p.name)}</span>${p.sub ? `<span class="pill sub">Sub</span>` : ""}</span></th>${keys.map((k, i) => `<td class="${info[i].ready ? "ready" : ""}">${cellBtn(p, k, i)}</td>`).join("")}</tr>`).join("");
+  const foot = `<tr><th scope="row">Available</th>${info.map(x => `<td class="${x.ready ? "ready" : ""}"><span class="cnt ${x.ready ? "ok" : x.yes.length >= READY_N - 1 ? "near" : ""}">${cntText(x.yes.length)}</span>${x.ready && x.startersIn ? `<small>Starting five</small>` : x.ready ? `<small>With subs</small>` : ""}</td>`).join("")}</tr>`;
+  const table = `<div class="scroll avail-wrap"><table class="avail"><thead><tr><th scope="col" class="corner">Player</th>${head}</tr></thead><tbody>${rows}</tbody><tfoot>${foot}</tfoot></table></div>`;
+
+  // Phone layout: one card per day
+  const cards = `<div class="daycards">${keys.map((k, i) => `<section class="daycard${info[i].ready ? " ready" : ""}${k === today ? " today" : ""}">
+      <header><div><b>${DAY_SHORT[i]}</b> <span>${esc(fmtDate(dates[i]))}</span></div><div class="dc-right">${info[i].ready ? `<span class="ready-badge">${I.bolt}Ready</span>` : ""}<span class="cnt ${info[i].ready ? "ok" : info[i].yes.length >= READY_N - 1 ? "near" : ""}">${cntText(info[i].yes.length)}</span></div></header>
+      ${scrimsOn(k).length || !S.readOnly ? `<div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready)).join("")}${S.readOnly ? "" : `<button class="add-day inline" type="button" data-act="add-scrim" data-date="${k}">${I.plus}Scrim</button>`}</div>` : ""}
+      <div class="dc-players">${ps.map(p => `<div class="dc-p"><span class="nm">${esc(p.name)}${p.sub ? ` <small>Sub</small>` : ""}</span>${cellBtn(p, k, i)}</div>`).join("")}</div></section>`).join("")}</div>`;
+
+  // Upcoming list
+  const up = upcomingScrims();
+  const list = `<section class="panel"><h3>Upcoming scrims</h3>${up.length ? `<ul class="scrims">${up.map(x => { const d = dayInfo(x.date); const dt = parseYmd(x.date); return `<li>
+      <div class="sdate"><b>${esc(fmtDate(dt, { weekday: "short" }))}</b><span>${esc(fmtDate(dt))}</span></div>
+      <div class="smain"><b>${esc(x.opponent || "TBD")}</b><span>${esc([x.time, x.format].filter(Boolean).join(" · "))}${x.notes ? " · " + esc(x.notes) : ""}</span></div>
+      <span class="flag ${d.ready ? "good" : d.yes.length >= READY_N - 1 ? "warn" : "bad"}">${d.ready ? (d.startersIn ? "Starting five ready" : "Ready with subs") : `${d.yes.length}/${READY_N} available`}</span>
+      ${S.readOnly ? "" : `<button class="iconbtn" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" aria-label="Edit scrim against ${esc(x.opponent)}">${I.edit}</button>`}</li>`; }).join("")}</ul>` : `<span class="formhint">No scrims booked yet.${S.readOnly ? "" : " Use Add scrim, or the + on a day."}</span>`}</section>`;
+  return top + bar + hint + table + cards + list;
+}
+
+function editScrim(id, date) {
+  const x = id ? S.scrims.find(s => s.id === id) : null;
+  const d = x || { date: date || todayYmd(), time: "19:00", format: "Bo3" };
+  const FORMATS = ["Bo1", "Bo3", "Bo5", "Block (2 games)", "Block (3 games)"];
+  openSheet(x ? `Scrim vs ${x.opponent || "TBD"}` : "Add scrim", `
+  <fieldset><legend>Scrim</legend>
+    <label class="f"><span>Opponent</span><input id="sOpp" name="opp" required value="${esc(d.opponent || "")}" placeholder="Team name"></label>
+    <div class="frow"><label class="f"><span>Date</span><input id="sDate" name="sdate" type="date" required value="${esc(d.date)}"></label>
+    <label class="f"><span>Start time</span><input id="sTime" name="stime" type="time" value="${esc(d.time || "")}"></label>
+    <label class="f"><span>Format</span><select id="sFmt" name="sfmt">${FORMATS.map(f => opt(f, f, d.format === f)).join("")}</select></label></div>
+    <p class="formhint" id="sAvail"></p>
+    <label class="f"><span>Notes</span><textarea id="sNotes" name="snotes" rows="2" placeholder="e.g. Fearless draft, lobby details">${esc(d.notes || "")}</textarea></label>
+  </fieldset>`, {
+    onSubmit: async (f) => {
+      const opponent = f.opp.value.trim();
+      if (!opponent) { toast("Add the opponent's name before saving."); f.opp.focus(); return false; }
+      if (!f.sdate.value) { toast("Pick a date for the scrim."); f.sdate.focus(); return false; }
+      const data = { date: f.sdate.value, time: f.stime.value, opponent, format: f.sfmt.value, notes: f.snotes.value.trim() };
+      if (x && x.example) data.example = true;
+      const ok = await writeDoc("scrims", x ? x.id : uid("s-"), data);
+      if (ok) toast(x ? "Scrim updated" : `Scrim vs ${opponent} added`);
+      return ok;
+    },
+    onDelete: x ? async () => { const ok = await deleteDoc("scrims", x.id); if (ok) toast("Scrim removed"); return ok; } : null,
+    deleteLabel: "Remove scrim",
+  });
+  const form = document.getElementById("sheetForm");
+  const showAvail = () => { const k = form.sdate.value; const el = document.getElementById("sAvail"); if (!k) { el.textContent = ""; return; } const di = dayInfo(k); el.innerHTML = di.ready ? `<span class="flag good">${di.yes.length} players available${di.startersIn ? ", starting five ready" : ""}</span>` : `<span class="flag ${di.yes.length >= READY_N - 1 ? "warn" : "bad"}">Only ${di.yes.length} of ${READY_N} available that day${di.yes.length ? ": " + esc(di.yes.map(p => p.name).join(", ")) : ""}</span>`; };
+  form.sdate.addEventListener("change", showAvail); showAvail();
+}
+
+/* ---------- Fearless view ---------- */
+function viewFearless() {
+  const s = series();
+  const canEdit = !S.readOnly;
+  const top = `<div class="toolbar"><div><h2>Fearless draft</h2><p>In a fearless series every champion can only be played once. Lock the picks from each game to see which comfort picks are still open for the next one.</p></div>${canEdit ? `<div class="actions"><button class="btn" data-act="fl-reset" type="button"${s.locked.length ? "" : " disabled"}>Reset series</button></div>` : ""}</div>`;
+  const sw = `<button class="switch" type="button" role="switch" aria-checked="${s.enabled}" data-act="fl-toggle"${canEdit ? "" : " disabled"}><span class="knob"></span><span class="sw-text">Fearless draft ${s.enabled ? "on" : "off"}</span></button>`;
+  const games = `<div class="seg" role="group" aria-label="Game being drafted">${[1, 2, 3].map(g => `<button type="button" data-act="fl-game" data-val="${g}" aria-pressed="${s.game === g}"${canEdit && s.enabled ? "" : " disabled"}>Game ${g}</button>`).join("")}</div>`;
+  const pools = ROLES.map(r => {
+    const entries = [];
+    S.players.forEach(p => (p.champions || []).forEach(c => { if (c.role === r.k && c.tier !== "learning" && champName(c.champ)) entries.push({ p, c }); }));
+    const order = { main: 0, comfort: 1, pocket: 2 };
+    entries.sort((a, b) => (a.p.sub ? 1 : 0) - (b.p.sub ? 1 : 0) || (order[a.c.tier] ?? 1) - (order[b.c.tier] ?? 1));
+    const left = entries.filter(e => !lockedEntry(e.c.champ)).length;
+    const byPlayer = new Map(); entries.forEach(e => { if (!byPlayer.has(e.p.id)) byPlayer.set(e.p.id, { p: e.p, cs: [] }); byPlayer.get(e.p.id).cs.push(e.c); });
+    const chip = (c) => { const lk = lockedEntry(c.champ); const tag = canEdit && s.enabled ? "button" : "span"; return `<${tag} class="chip ${esc(c.tier)}${lk ? " locked" : ""}"${tag === "button" ? ` type="button" data-act="fl-lock" data-champ="${esc(champName(c.champ))}" aria-pressed="${!!lk}"` : ""} title="${lk ? `Used in game ${lk.game}${tag === "button" ? ". Tap to unlock." : ""}` : tag === "button" ? `Tap to lock for game ${s.game}` : esc(TIER[c.tier]?.name || "")}">${champIcon(c.champ)}${esc(champName(c.champ))}${lk ? `<small>G${lk.game}</small>` : ""}</${tag}>`; };
+    return `<section class="fl-col${s.enabled && entries.length && !left ? " dry" : ""}"><header><span class="role">${ri(r.k)}${r.code}</span><span class="fl-left ${!s.enabled ? "" : left === 0 ? "bad" : left <= 2 ? "warn" : "good"}">${s.enabled ? `${left} of ${entries.length} open` : `${entries.length} picks`}</span></header>
+      ${byPlayer.size ? [...byPlayer.values()].map(({ p, cs }) => `<div class="fl-player"><span class="label">${esc(p.name)}${p.sub ? " · Sub" : ""}</span><div class="chips">${cs.map(chip).join("")}</div></div>`).join("") : `<span class="formhint">No comfort picks for ${esc(r.name)} yet.</span>`}</section>`;
+  }).join("");
+  const byGame = [1, 2, 3].map(g => ({ g, xs: s.locked.filter(l => l.game === g) })).filter(x => x.xs.length);
+  const lockedPanel = `<section class="panel"><h3>Locked this series</h3>
+    ${byGame.length ? byGame.map(({ g, xs }) => `<div class="fl-game"><span class="label">Game ${g}</span><div class="chips">${xs.map(l => `<span class="chip locked-list ${l.side === "them" ? "them" : ""}">${champIcon(l.champ)}${esc(champName(l.champ))}<small>${l.side === "them" ? "THEM" : "US"}</small>${canEdit ? `<button class="x" type="button" data-act="fl-unlock" data-champ="${esc(champName(l.champ))}" aria-label="Unlock ${esc(champName(l.champ))}">${I.x}</button>` : ""}</span>`).join("")}</div></div>`).join("") : `<span class="formhint">Nothing locked yet. ${s.enabled ? `Tap champions above as they're picked in game ${s.game}.` : "Turn on fearless draft to start a series."}</span>`}
+    ${canEdit && s.enabled ? `<form class="fl-add" id="flAdd"><input id="flChamp" name="flchamp" list="champList" placeholder="Lock any champion, e.g. an enemy pick" autocomplete="off" aria-label="Champion to lock"><select id="flSide" name="flside" aria-label="Who picked it">${opt("them", "Their pick", true)}${opt("us", "Our pick", false)}</select><button class="btn" type="submit">${I.lock}Lock for game ${s.game}</button></form>` : ""}</section>`;
+  if (!S.players.length) return top + `<div class="empty"><span class="ico">${I.lock}</span><h3>No champion pools yet</h3><p>Add players and their comfort champions on the Roster tab. They'll appear here sorted by position.</p></div>`;
+  return top + `<div class="fl-bar">${sw}${games}<span class="formhint">${s.enabled ? `Now drafting <b>game ${s.game}</b>. ${canEdit ? "Tap a champion to lock it; tap again to unlock." : ""}` : "Locked champions are only greyed out while fearless draft is on."}</span></div>
+    <div class="fl-grid${s.enabled ? "" : " off"}">${pools}</div>` + lockedPanel;
+}
+
+/* ---------- Scouting view ---------- */
+function viewScouting() {
+  const v = scoutValues(), saved = scoutSaved();
+  const dirty = !!S.scoutDraft && SCOUT_FIELDS.some(k => (S.scoutDraft[k] ?? (saved[k] || "")) !== (saved[k] || ""));
+  const ro = S.readOnly;
+  const next = upcomingScrims()[0];
+  const top = `<div class="toolbar"><div><h2>Opponent scouting</h2><p>Notes on the next team you play: what they're best at, where they're weak, and how we plan to win.</p></div></div>`;
+  const nextCard = next && next.opponent !== v.opponent ? `<div class="banner"><span>${I.cal}<span>Next scrim: <b>${esc(next.opponent)}</b> on ${esc(fmtDate(parseYmd(next.date), { weekday: "short", day: "numeric", month: "short" }))}${next.time ? ", " + esc(next.time) : ""}</span></span>${ro ? "" : `<button class="btn small" type="button" data-act="scout-use-next">Scout this team</button>`}</div>` : "";
+  const area = (k, title, hint, ph) => `<section class="panel scout-box"><h3>${title}</h3><p class="hint">${hint}</p>${ro ? `<p class="scout-text${v[k] ? "" : " na"}">${esc(v[k] || "Nothing written yet.")}</p>` : `<textarea id="sc_${k}" data-scout="${k}" rows="7" placeholder="${esc(ph)}" aria-label="${esc(title)}">${esc(v[k])}</textarea>`}</section>`;
+  const champs = mentionedChamps(v.powerPicks);
+  const savedAt = saved.updatedAt ? new Date(saved.updatedAt) : null;
+  const status = dirty ? `<span class="unsaved">Unsaved changes</span>` : `<span class="formhint">${savedAt ? "Saved " + esc(savedAt.toLocaleString(undefined, { weekday: "short", hour: "2-digit", minute: "2-digit" })) : "Not saved yet"}</span>`;
+  return top + nextCard + `<section class="panel scout-head">
+      ${ro ? `<div class="scout-opp"><span class="label">Next opponent</span><b>${esc(v.opponent || "Not set")}</b>${v.matchDate ? `<span>${esc(fmtDate(parseYmd(v.matchDate), { weekday: "long", day: "numeric", month: "long" }))}</span>` : ""}</div>`
+        : `<div class="frow"><label class="f"><span>Next opponent</span><input id="sc_opponent" data-scout="opponent" value="${esc(v.opponent)}" placeholder="Team name"></label><label class="f"><span>Match date</span><input id="sc_matchDate" data-scout="matchDate" type="date" value="${esc(v.matchDate)}"></label></div>`}
+      ${champs.length ? `<div class="scout-champs"><span class="label">Their power picks</span><div class="chips">${champs.map(c => `<span class="chip">${champIcon(c)}${esc(c)}</span>`).join("")}</div></div>` : ""}
+    </section>
+    <div class="scout-grid">
+      ${area("powerPicks", "Power picks & bans", "Their best champions and what we should ban.", "e.g. Azir mid is their comfort pick. Ban Azir, Lee Sin")}
+      ${area("weaknesses", "Weaknesses", "Where they're vulnerable: lanes, timings, habits.", "e.g. Bot lane overextends without vision")}
+      ${area("gameplan", "Our gameplan", "How we play this match.", "e.g. Play for early dragons, group after first tower")}
+    </div>
+    ${ro ? "" : `<div class="savebar">${status}<div class="right">${dirty ? `<button class="btn" type="button" data-act="scout-discard">Discard</button>` : ""}<button class="btn primary" type="button" data-act="scout-save"${dirty ? "" : " disabled"}>${I.check}Save notes</button></div></div>`}`;
+}
+async function saveScouting() {
+  if (!S.scoutDraft) return;
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  const data = scoutValues(); data.opponent = data.opponent.trim();
+  const ok = await writeDoc("scouting", "next", data);
+  if (ok) { S.scoutDraft = null; render(); toast("Scouting notes saved"); }
+}
+
 /* ---------- Editors ---------- */
 const overlay = document.getElementById("overlay");
 let lastFocus = null;
@@ -945,7 +1333,8 @@ function editPlayer(id) {
     <label class="f"><span>Riot ID</span><input id="pIgn" name="ign" value="${esc(d.ign || "")}" placeholder="Name#TAG"></label></div>
     <div class="frow"><label class="f"><span>Rank</span><select id="pRank" name="rank">${opt("", "—", !d.rank)}${RANKS.map(r => opt(r, r, d.rank === r)).join("")}</select></label>
     <label class="f"><span>Division</span><select id="pDiv" name="div">${opt("", "—", !d.div)}${DIVS.map(x => opt(x, x, d.div === x)).join("")}</select></label>
-    <label class="f"><span>Playstyle</span><select id="pStyle" name="style">${opt("", "—", !d.style)}${STYLES.map(s => opt(s, s, d.style === s)).join("")}</select></label></div>
+    <label class="f"><span>Playstyle</span><select id="pStyle" name="style">${opt("", "—", !d.style)}${STYLES.map(s => opt(s, s, d.style === s)).join("")}</select></label>
+    <label class="f"><span>Roster spot</span><select id="pSpot" name="spot">${opt("starter", "Starter", !d.sub)}${opt("sub", "Substitute", !!d.sub)}</select></label></div>
   </fieldset>
   <fieldset><legend>Roles</legend>
     <label class="f"><span>Main role</span><select id="pRole" name="primaryRole">${ROLES.map(r => opt(r.k, r.name, d.primaryRole === r.k)).join("")}</select></label>
@@ -971,7 +1360,7 @@ function editPlayer(id) {
       if (!name) { toast("Give the player a name before saving."); f.name.focus(); return false; }
       const champs = [];
       f.querySelectorAll(".crow").forEach(row => { const champ = champName(row.querySelector('[name="cChamp"]').value); if (champ) champs.push({ champ, role: row.querySelector('[name="cRole"]').value, tier: row.querySelector('[name="cTier"]').value }); });
-      const data = { name, ign: f.ign.value.trim(), rank: f.rank.value, div: f.div.value, style: f.style.value, primaryRole: f.primaryRole.value,
+      const data = { name, ign: f.ign.value.trim(), rank: f.rank.value, div: f.div.value, style: f.style.value, sub: f.spot.value === "sub", primaryRole: f.primaryRole.value,
         secondaryRoles: [...f.querySelectorAll('[name="sec"]:checked')].map(x => x.value).filter(k => k !== f.primaryRole.value),
         champions: champs, strengths: lines(f.strengths.value), weaknesses: lines(f.weaknesses.value), notes: f.notes.value.trim() };
       if (p && p.example) data.example = true;
@@ -1057,6 +1446,34 @@ document.addEventListener("click", (e) => {
   if (act === "add-comp") return editComp(null);
   if (act === "edit-comp") return editComp(t.dataset.id);
   if (act === "unlock") return openCodeSheet();
+  if (act === "week") { S.weekOffset = t.dataset.val === "0" ? 0 : S.weekOffset + Number(t.dataset.val); render(); return; }
+  if (act === "avail") {
+    if (S.readOnly) { toast("Unlock editing to mark availability."); return; }
+    const pid = t.dataset.pid, date = t.dataset.date, cur = availOf(pid, date);
+    const nextSt = cur === "" ? "yes" : cur === "yes" ? "no" : "";
+    const id = availId(date, pid);
+    if (nextSt) writeDoc("avail", id, { date, playerId: pid, status: nextSt }); else deleteDoc("avail", id);
+    return;
+  }
+  if (act === "add-scrim") return editScrim(null, t.dataset.date);
+  if (act === "edit-scrim") return editScrim(t.dataset.id);
+  if (act === "fl-toggle") { const sr = series(); saveSeries({ enabled: !sr.enabled }); toast(sr.enabled ? "Fearless draft off" : `Fearless draft on, game ${sr.game}`); return; }
+  if (act === "fl-game") { saveSeries({ game: Number(t.dataset.val) }); return; }
+  if (act === "fl-lock" || act === "fl-unlock") {
+    const sr = series(), n = t.dataset.champ.toLowerCase();
+    const has = sr.locked.find(l => champName(l.champ).toLowerCase() === n);
+    if (act === "fl-unlock" && !has) return;
+    saveSeries({ locked: has ? sr.locked.filter(l => l !== has) : [...sr.locked, { champ: t.dataset.champ, game: sr.game, side: "us" }] });
+    return;
+  }
+  if (act === "fl-reset") {
+    if (t.dataset.confirm !== "1") { t.dataset.confirm = "1"; t.classList.add("danger"); t.textContent = "Click again to reset"; setTimeout(() => { if (t.isConnected) { t.dataset.confirm = ""; t.classList.remove("danger"); t.textContent = "Reset series"; } }, 4000); return; }
+    saveSeries({ locked: [], game: 1 }).then(ok => { if (ok) toast("Series reset to game 1"); });
+    return;
+  }
+  if (act === "scout-save") return saveScouting();
+  if (act === "scout-discard") { S.scoutDraft = null; render(); return; }
+  if (act === "scout-use-next") { const nx = upcomingScrims()[0]; if (nx) { S.scoutDraft = { ...(S.scoutDraft || {}), opponent: nx.opponent, matchDate: nx.date }; render(); } return; }
   if (act === "filter") { S.roleFilter = t.dataset.val; render(); return; }
   if (act === "load-ex") return loadExamples();
   if (act === "clear-ex") return clearExamples();
@@ -1066,12 +1483,36 @@ document.addEventListener("click", (e) => {
   if (act === "pick-sug") { const wrap = t.closest(".prow-wrap"); wrap.querySelector("input").value = t.dataset.val; return; }
 });
 document.getElementById("renameBtn").addEventListener("click", renameTeam);
+document.addEventListener("submit", (e) => {
+  if (e.target.id !== "flAdd") return;
+  e.preventDefault();
+  const inp = e.target.flchamp, info = champInfo(inp.value);
+  if (!info) { toast("Pick a champion from the list."); inp.focus(); return; }
+  const sr = series();
+  if (lockedEntry(info.name)) { toast(`${info.name} is already locked.`); return; }
+  inp.value = ""; inp.blur();
+  saveSeries({ locked: [...sr.locked, { champ: info.name, game: sr.game, side: e.target.flside.value }] }).then(ok => { if (ok) toast(`${info.name} locked for game ${sr.game}`); });
+});
+document.addEventListener("input", (e) => {
+  const k = e.target.dataset && e.target.dataset.scout;
+  if (!k) return;
+  S.scoutDraft = { ...(S.scoutDraft || {}), [k]: e.target.value };
+  const sb = document.querySelector(".savebar");
+  if (sb) {
+    sb.querySelector('[data-act="scout-save"]').disabled = false;
+    const st = sb.firstElementChild; if (st && !st.classList.contains("unsaved")) st.outerHTML = `<span class="unsaved">Unsaved changes</span>`;
+    if (!sb.querySelector('[data-act="scout-discard"]')) sb.querySelector(".right").insertAdjacentHTML("afterbegin", `<button class="btn" type="button" data-act="scout-discard">Discard</button>`);
+  }
+});
+document.getElementById("view").addEventListener("focusout", () => setTimeout(() => { if (S.pendingRender) render(); }, 0));
+document.addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s" && S.view === "scouting" && !S.readOnly && !overlay.innerHTML) { e.preventDefault(); saveScouting(); } });
+window.addEventListener("beforeunload", (e) => { if (S.scoutDraft && document.querySelector(".unsaved")) { e.preventDefault(); e.returnValue = ""; } });
 document.getElementById("codeBtn").addEventListener("click", () => {
   if (S.readOnly) return openCodeSheet();
   setCode(""); S.readOnly = true; render(); toast("Editing locked on this device");
 });
 
-function route() { const h = (location.hash || "").slice(1); S.view = ["roster", "team", "comps"].includes(h) ? h : "roster"; render(); }
+function route() { const h = (location.hash || "").slice(1); S.view = VIEWS.includes(h) ? h : "roster"; render(); const a = document.querySelector(`.tabs a[data-view="${S.view}"]`); if (a && a.scrollIntoView) a.scrollIntoView({ block: "nearest", inline: "nearest" }); }
 window.addEventListener("hashchange", route);
 route();
 

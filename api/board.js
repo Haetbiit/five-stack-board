@@ -11,9 +11,11 @@ const TCP_URL = process.env.REDIS_URL || process.env.KV_URL;
 const TEAM_CODE = process.env.TEAM_CODE || "";
 
 const KEY = "fsb:";
-const COLLECTIONS = new Set(["players", "comps"]);
+// Collection -> max number of entries
+const COLLECTIONS = { players: 50, comps: 200, scrims: 1000, avail: 20000, fearless: 5, scouting: 20 };
 const MAX_DOC_BYTES = 20000;
-const MAX_ROWS = 200;
+const MAX_BATCH = 100;
+const AVAIL_KEEP_DAYS = 70;
 
 // One shared connection per warm function instance
 let tcpClient = null;
@@ -71,10 +73,15 @@ export default async function handler(req, res) {
       if (req.query && req.query.since !== undefined && Number(req.query.since) === version) {
         return res.status(200).json({ unchanged: true, version });
       }
-      const [players, comps, meta] = await redis([["HGETALL", KEY + "players"], ["HGETALL", KEY + "comps"], ["GET", KEY + "meta"]]);
-      let m = {};
-      try { m = meta ? JSON.parse(meta) : {}; } catch { m = {}; }
-      return res.status(200).json({ version, players: hashToList(players || []), comps: hashToList(comps || []), meta: m });
+      const cols = Object.keys(COLLECTIONS);
+      const replies = await redis([...cols.map((c) => ["HGETALL", KEY + c]), ["GET", KEY + "meta"]]);
+      const out = { version };
+      cols.forEach((c, i) => { out[c] = hashToList(replies[i] || []); });
+      // Old availability is kept in Redis but not sent, so the payload stays small
+      const cutoff = new Date(Date.now() - AVAIL_KEEP_DAYS * 864e5).toISOString().slice(0, 10);
+      out.avail = out.avail.filter((a) => typeof a.date === "string" && a.date >= cutoff);
+      try { out.meta = replies[cols.length] ? JSON.parse(replies[cols.length]) : {}; } catch { out.meta = {}; }
+      return res.status(200).json(out);
     }
 
     if (req.method === "POST") {
@@ -93,28 +100,46 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
-      if (!COLLECTIONS.has(col) || typeof id !== "string" || !/^[\w-]{1,64}$/.test(id)) {
-        return res.status(400).json({ error: "That request isn't valid." });
-      }
+      const ops = action === "batch" ? body.ops : [{ action, col, id, data }];
+      if (!Array.isArray(ops) || !ops.length || ops.length > MAX_BATCH) return res.status(400).json({ error: "That request isn't valid." });
 
-      if (action === "delete") {
-        await redis([["HDEL", KEY + col, id], ["INCR", KEY + "version"]]);
-        return res.status(200).json({ ok: true });
-      }
-
-      if (action === "set") {
-        if (!data || typeof data !== "object" || Array.isArray(data)) return res.status(400).json({ error: "That request isn't valid." });
-        const clean = { ...data };
+      // Validate everything before writing anything
+      const commands = [];
+      const newPerCol = {};
+      for (const op of ops) {
+        if (!op || !Object.hasOwn(COLLECTIONS, op.col) || typeof op.id !== "string" || !/^[\w-]{1,64}$/.test(op.id)) {
+          return res.status(400).json({ error: "That request isn't valid." });
+        }
+        if (op.action === "delete") { commands.push(["HDEL", KEY + op.col, op.id]); continue; }
+        if (op.action !== "set" || !op.data || typeof op.data !== "object" || Array.isArray(op.data)) {
+          return res.status(400).json({ error: "That request isn't valid." });
+        }
+        const clean = { ...op.data };
         delete clean.id;
         const json = JSON.stringify(clean);
         if (Buffer.byteLength(json) > MAX_DOC_BYTES) return res.status(413).json({ error: "That entry is too long to save. Shorten the notes and try again." });
-        const [exists, count] = await redis([["HEXISTS", KEY + col, id], ["HLEN", KEY + col]]);
-        if (!exists && count >= MAX_ROWS) return res.status(409).json({ error: "The board is full. Delete some players or comps, then try again." });
-        await redis([["HSET", KEY + col, id, json], ["INCR", KEY + "version"]]);
-        return res.status(200).json({ ok: true });
+        commands.push(["HSET", KEY + op.col, op.id, json]);
+        (newPerCol[op.col] ??= new Set()).add(op.id);
       }
 
-      return res.status(400).json({ error: "That request isn't valid." });
+      // Capacity check per collection, counting only ids that don't exist yet
+      const cols = Object.keys(newPerCol);
+      if (cols.length) {
+        const checks = [];
+        for (const c of cols) { checks.push(["HLEN", KEY + c]); for (const i of newPerCol[c]) checks.push(["HEXISTS", KEY + c, i]); }
+        const replies = await redis(checks);
+        let k = 0;
+        for (const c of cols) {
+          const count = Number(replies[k++]);
+          let added = 0;
+          for (const _ of newPerCol[c]) if (!Number(replies[k++])) added++;
+          if (added && count + added > COLLECTIONS[c]) return res.status(409).json({ error: "The board is full. Delete some old entries, then try again." });
+        }
+      }
+
+      commands.push(["INCR", KEY + "version"]);
+      await redis(commands);
+      return res.status(200).json({ ok: true });
     }
 
     res.setHeader("Allow", "GET, POST");
