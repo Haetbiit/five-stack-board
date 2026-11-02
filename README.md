@@ -5,11 +5,14 @@ Team planner for a League of Legends five-stack.
 - **Roster**: players (starters and subs), roles, champion pools by tier, strengths and weaknesses
 - **Team map**: role coverage, champion depth per position, shared champions, damage spread
 - **Comps**: five-player drafts checked against each player's pool
-- **Schedule**: week view (Mon–Sun) of scrims and availability. Players tap green (available) or red (busy); a day lights up as "Ready for scrims" once five players are free
+- **Schedule**: week view (Mon–Sun) of scrims and availability. Players tap green (available) or red (busy); a day lights up as "Ready for scrims" once five players are free. "I am" pins your own row, the week copies as a Discord message, upcoming scrims export as a calendar (.ics), and past scrims keep a result, review and VOD link with a running win–loss record
 - **Fearless**: comfort picks by position (Top, Jungle, Mid, ADC, Support) with a fearless-draft switch. Lock champions used in game 1/2/3 and they grey out everywhere, so the team sees what's left
-- **Scouting**: next opponent, their power picks and bans, weaknesses, and our gameplan, with a save button
+- **Scouting**: next opponent, their power picks and bans, weaknesses, and our gameplan, with a save button. Shows our record and last reviews against that team
 
-- `public/` – the app (a single page) and champion icons
+English and German, switchable in the header (defaults to the browser language).
+
+- `public/index.html`, `app.css`, `app.js` – the app; `i18n.js` – German translations (keys are the English strings)
+- `public/champ-icons.json` – champion portraits
 - `api/board.js` – shared storage, backed by Upstash Redis
 
 ## Setup on Vercel

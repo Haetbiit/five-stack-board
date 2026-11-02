@@ -20,5 +20,5 @@ http.createServer((req, res) => {
     handler(req, res); }); return; }
   const f = path.join(process.argv[2], "public", u.pathname === "/" ? "index.html" : u.pathname);
   if (!fs.existsSync(f)) { res.statusCode = 404; return res.end("nf"); }
-  res.setHeader("content-type", f.endsWith(".html") ? "text/html" : "application/json"); res.end(fs.readFileSync(f));
+  res.setHeader("content-type", f.endsWith(".html") ? "text/html" : f.endsWith(".css") ? "text/css" : f.endsWith(".js") ? "text/javascript" : "application/json"); res.end(fs.readFileSync(f));
 }).listen(8787, () => console.log("up"));
