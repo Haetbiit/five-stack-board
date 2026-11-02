@@ -676,3 +676,27 @@ button.gchip.suggest:hover { background: var(--good-soft); }
 .logo-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .logo-actions label.btn { cursor: pointer; }
 .logo-actions label.btn:focus-within { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* Fearless on the Draft page */
+.fl-bar.on { display: grid; gap: 12px; }
+.fl-top { display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; }
+.fl-top .legend { margin-left: auto; }
+.fl-used { display: grid; gap: 8px; }
+.fl-used .fl-game { grid-template-columns: 34px minmax(0, 1fr); }
+.fl-used .fl-game + .fl-game { padding-top: 8px; }
+.fl-lanes { border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+.fl-lanes > summary { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; padding: 12px 14px; cursor: pointer; list-style: none; }
+.fl-lanes > summary::-webkit-details-marker { display: none; }
+.fl-lanes > summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .15s; flex: none; }
+.fl-lanes[open] > summary::before { transform: rotate(45deg); }
+.fl-lanes[open] > summary { border-bottom: 1px solid var(--line); }
+.fl-lanes > .formhint { padding: 10px 14px 0; }
+.fl-lanes .fl-grid { border: 0; background: transparent; }
+.fl-sums { display: flex; gap: 6px 14px; flex-wrap: wrap; margin-left: auto; }
+.fl-sum { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.fl-sum.good { color: var(--good); } .fl-sum.warn { color: var(--warn); } .fl-sum.bad { color: var(--red); }
+@media (max-width: 760px) {
+  .fl-top .legend { margin-left: 0; }
+  .fl-top [data-act="fl-reset"] { margin-left: auto; }
+  .fl-sums { margin-left: 0; }
+}

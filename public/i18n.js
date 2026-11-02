@@ -575,4 +575,11 @@ window.FSB_DE = {
   "Team profile saved": "Teamprofil gespeichert",
   "That image is too large. Pick one under 10 MB.": "Das Bild ist zu groß. Wähle eins unter 10 MB.",
   "That file isn't an image the browser can read. Try a PNG or JPG.": "Diese Datei ist kein Bild, das der Browser lesen kann. Versuch es mit PNG oder JPG.",
+
+  // Fearless on the Draft page
+  "In a fearless series every champion can only be played once. Turn it on to lock each game's picks.": "In einer Fearless-Serie darf jeder Champion nur einmal gespielt werden. Schalte es ein, um die Picks jedes Spiels zu sperren.",
+  "Nothing locked yet. Finish a draft and lock its picks, or add champions below.": "Noch nichts gesperrt. Schließ einen Draft ab und sperre seine Picks, oder füge unten Champions hinzu.",
+  "Comfort picks left by position": "Verbleibende Comfort-Picks nach Position",
+  "Comfort picks by position": "Comfort-Picks nach Position",
+  "Tap a champion to lock it for game {g}; tap again to unlock.": "Tippe auf einen Champion, um ihn für Spiel {g} zu sperren; nochmal tippen zum Entsperren.",
 };

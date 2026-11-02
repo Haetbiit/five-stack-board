@@ -119,8 +119,8 @@ const EXAMPLE = {
 
 /* ---------- State ---------- */
 const COLS = ["players", "comps", "scrims", "avail", "fearless", "scouting", "counters"];
-const VIEWS = ["roster", "team", "comps", "draft", "fearless", "scouting", "schedule", "stats"];
-const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], counters: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", pendingRender: false };
+const VIEWS = ["roster", "team", "comps", "draft", "scouting", "schedule", "stats"];
+const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], counters: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", pendingRender: false, flLanesOpen: false };
 const LS_KEY = "five-stack-board-v2";
 const ME_KEY = "fsb-me";
 
@@ -489,7 +489,7 @@ function render() {
   S.pendingRender = false;
   const hasEx = COLS.some(c => S[c].some(x => x.example));
   const exBanner = hasEx && !S.readOnly ? `<div class="notice"><span>${t("You're looking at <b>example data</b>. Add your own team, then clear the examples.")}</span><button class="btn small" data-act="clear-ex" type="button">${esc(t("Clear examples"))}</button></div>` : "";
-  const views = { roster: viewRoster, team: viewTeam, comps: viewComps, draft: viewDraft, schedule: viewSchedule, stats: viewStats, fearless: viewFearless, scouting: viewScouting };
+  const views = { roster: viewRoster, team: viewTeam, comps: viewComps, draft: viewDraft, schedule: viewSchedule, stats: viewStats, scouting: viewScouting };
   v.innerHTML = (views[S.view] || viewRoster)() + exBanner;
   if (v.dataset.shown === S.view) v.classList.add("settled"); else { v.classList.remove("settled"); v.dataset.shown = S.view; }
 }
@@ -911,34 +911,44 @@ function viewStats() {
   return top + summary + `<div class="two">${sidePanel}${compPanel}</div><div class="two">${champPanel}${enemyPanel}</div>` + oppPanel;
 }
 
-/* ---------- Fearless ---------- */
-function viewFearless() {
+/* ---------- Fearless (part of the Draft page) ---------- */
+// Series bar at the top of the draft: on/off, which game, and what's used so far
+function fearlessBar() {
   const s = series(), canEdit = !S.readOnly;
-  const top = pagehead(t("Fearless draft"), t("In a fearless series every champion can only be played once. Lock the picks from each game to see which comfort picks are still open."), canEdit ? `<button class="btn" data-act="fl-reset" type="button"${s.locked.length ? "" : " disabled"}>${esc(t("Reset series"))}</button>` : "");
-  if (!S.players.length) return top + `<div class="empty"><h3>${esc(t("No champion pools yet"))}</h3><p>${esc(t("Add players and their comfort champions on the Roster tab. They'll appear here sorted by position."))}</p></div>`;
   const sw = `<button class="switch" type="button" role="switch" aria-checked="${s.enabled}" data-act="fl-toggle"${canEdit ? "" : " disabled"}><span class="knob"></span><span>${esc(t("Fearless"))} ${esc(s.enabled ? t("on") : t("off"))}</span></button>`;
-  const games = `<div class="seg" role="group" aria-label="${esc(t("Game being drafted"))}">${[1, 2, 3].map(g => `<button type="button" data-act="fl-game" data-val="${g}" aria-pressed="${s.game === g}"${canEdit && s.enabled ? "" : " disabled"}>${esc(t("Game {g}", { g }))}</button>`).join("")}</div>`;
+  if (!s.enabled) return `<div class="fl-bar off">${sw}<span class="formhint">${esc(t("In a fearless series every champion can only be played once. Turn it on to lock each game's picks."))}</span></div>`;
+  const games = `<div class="seg" role="group" aria-label="${esc(t("Game being drafted"))}">${[1, 2, 3].map(g => `<button type="button" data-act="fl-game" data-val="${g}" aria-pressed="${s.game === g}"${canEdit ? "" : " disabled"}>${esc(t("Game {g}", { g }))}</button>`).join("")}</div>`;
+  const byGame = [1, 2, 3].map(g => ({ g, xs: s.locked.filter(l => l.game === g) })).filter(x => x.xs.length);
+  const used = byGame.length ? byGame.map(({ g, xs }) => `<div class="fl-game"><span class="label">G${g}</span><div class="chips">${xs.map(l => `<span class="chip lockitem ${l.side === "them" ? "them" : "us"}" title="${esc(t(l.side === "them" ? "Their pick" : "Our pick"))}">${champIcon(l.champ)}${esc(champName(l.champ))}${canEdit ? `<button class="x" type="button" data-act="fl-unlock" data-champ="${esc(champName(l.champ))}" aria-label="${esc(t("Unlock {champ}", { champ: champName(l.champ) }))}">${I.x}</button>` : ""}</span>`).join("")}</div></div>`).join("")
+    : `<span class="formhint">${esc(t("Nothing locked yet. Finish a draft and lock its picks, or add champions below."))}</span>`;
+  const add = canEdit ? `<form class="fl-add" id="flAdd"><input id="flChamp" name="flchamp" list="champList" placeholder="${esc(t("Lock any champion, e.g. an enemy pick"))}" autocomplete="off" aria-label="${esc(t("Champion to lock"))}"><select id="flSide" name="flside" aria-label="${esc(t("Who picked it"))}">${opt("them", t("Their pick"), true)}${opt("us", t("Our pick"), false)}</select><button class="btn" type="submit">${I.lock}${esc(t("Lock for game {g}", { g: s.game }))}</button></form>` : "";
+  return `<section class="fl-bar on"><div class="fl-top">${sw}${games}<span class="legend"><span><i class="av-dot" style="background:var(--blue);border:0"></i>${esc(t("Our pick"))}</span><span><i class="av-dot" style="background:var(--red);border:0"></i>${esc(t("Their pick"))}</span></span>${canEdit ? `<button class="btn small ghost" data-act="fl-reset" type="button"${s.locked.length ? "" : " disabled"}>${esc(t("Reset series"))}</button>` : ""}</div>
+    <div class="fl-used">${used}</div>${add}</section>`;
+}
+// Comfort picks still open in each lane, collapsible under the draft
+function fearlessLanes() {
+  const s = series(), canEdit = !S.readOnly;
+  if (!S.players.length) return "";
   const order = { main: 0, comfort: 1, pocket: 2 };
+  const summary = [];
   const pools = ROLES.map(r => {
     const entries = [];
     S.players.forEach(p => (p.champions || []).forEach(c => { if (c.role === r.k && c.tier !== "learning" && champName(c.champ)) entries.push({ p, c }); }));
     entries.sort((a, b) => (a.p.sub ? 1 : 0) - (b.p.sub ? 1 : 0) || (order[a.c.tier] ?? 1) - (order[b.c.tier] ?? 1));
     const left = entries.filter(e => !lockedEntry(e.c.champ)).length;
+    const cls = !s.enabled ? "" : left === 0 ? "bad" : left <= 2 ? "warn" : "good";
+    summary.push(`<span class="fl-sum ${cls}">${ri(r.k)}${r.code} ${s.enabled ? left + "/" + entries.length : entries.length}</span>`);
     const byPlayer = new Map(); entries.forEach(e => { if (!byPlayer.has(e.p.id)) byPlayer.set(e.p.id, { p: e.p, cs: [] }); byPlayer.get(e.p.id).cs.push(e.c); });
     const chip = (c) => {
       const lk = lockedEntry(c.champ), tag = canEdit && s.enabled ? "button" : "span";
       const title = lk ? t("Used in game {g}", { g: lk.game }) + (tag === "button" ? ". " + t("Tap to unlock.") : "") : tag === "button" ? t("Tap to lock for game {g}", { g: s.game }) : t(TIER[c.tier]?.name || "");
       return `<${tag} class="chip ${esc(c.tier)}${lk ? " locked" + (lk.side === "them" ? " them" : "") : ""}"${tag === "button" ? ` type="button" data-act="fl-lock" data-champ="${esc(champName(c.champ))}" aria-pressed="${!!lk}"` : ""} title="${esc(title)}">${champIcon(c.champ)}${esc(champName(c.champ))}${lk ? `<small>G${lk.game}</small>` : ""}</${tag}>`;
     };
-    return `<section class="fl-col"><header><span class="role">${ri(r.k)}${esc(r.name)}</span><span class="fl-left ${!s.enabled ? "" : left === 0 ? "bad" : left <= 2 ? "warn" : "good"}">${esc(s.enabled ? t("{n} of {m} open", { n: left, m: entries.length }) : tn(entries.length, "{n} pick", "{n} picks"))}</span></header>
+    return `<section class="fl-col"><header><span class="role">${ri(r.k)}${esc(r.name)}</span><span class="fl-left ${cls}">${esc(s.enabled ? t("{n} of {m} open", { n: left, m: entries.length }) : tn(entries.length, "{n} pick", "{n} picks"))}</span></header>
       ${byPlayer.size ? [...byPlayer.values()].map(({ p, cs }) => `<div class="fl-player"><span class="label">${esc(p.name)}${p.sub ? " · " + esc(t("Sub")) : ""}</span><div class="chips">${cs.map(chip).join("")}</div></div>`).join("") : `<span class="formhint">${esc(t("No comfort picks for {role} yet.", { role: r.name }))}</span>`}</section>`;
   }).join("");
-  const byGame = [1, 2, 3].map(g => ({ g, xs: s.locked.filter(l => l.game === g) })).filter(x => x.xs.length);
-  const lockedPanel = `<section class="panel"><div class="panel-head"><h3>${esc(t("Locked this series"))}</h3><span class="legend"><span><i class="av-dot" style="background:var(--blue);border:0"></i>${esc(t("Our pick"))}</span><span><i class="av-dot" style="background:var(--red);border:0"></i>${esc(t("Their pick"))}</span></span></div>
-    ${byGame.length ? byGame.map(({ g, xs }) => `<div class="fl-game"><span class="label">${esc(t("Game {g}", { g }))}</span><div class="chips">${xs.map(l => `<span class="chip lockitem ${l.side === "them" ? "them" : "us"}">${champIcon(l.champ)}${esc(champName(l.champ))}${canEdit ? `<button class="x" type="button" data-act="fl-unlock" data-champ="${esc(champName(l.champ))}" aria-label="${esc(t("Unlock {champ}", { champ: champName(l.champ) }))}">${I.x}</button>` : ""}</span>`).join("")}</div></div>`).join("") : `<span class="formhint">${esc(s.enabled ? t("Nothing locked yet. Tap champions above as they're picked in game {g}.", { g: s.game }) : t("Turn on fearless draft to start a series."))}</span>`}
-    ${canEdit && s.enabled ? `<form class="fl-add" id="flAdd"><input id="flChamp" name="flchamp" list="champList" placeholder="${esc(t("Lock any champion, e.g. an enemy pick"))}" autocomplete="off" aria-label="${esc(t("Champion to lock"))}"><select id="flSide" name="flside" aria-label="${esc(t("Who picked it"))}">${opt("them", t("Their pick"), true)}${opt("us", t("Our pick"), false)}</select><button class="btn" type="submit">${I.lock}${esc(t("Lock for game {g}", { g: s.game }))}</button></form>` : ""}</section>`;
-  return top + `<div class="fl-bar">${sw}${games}<span class="formhint">${s.enabled ? t("Now drafting <b>game {g}</b>.", { g: s.game }) + (canEdit ? " " + esc(t("Tap a champion to lock it; tap again to unlock.")) : "") : esc(t("Locked champions are only greyed out while fearless is on."))}</span></div>
-    <div class="fl-grid">${pools}</div>` + lockedPanel;
+  return `<details class="fl-lanes" id="flLanes"${S.flLanesOpen ? " open" : ""}><summary><span class="label">${esc(s.enabled ? t("Comfort picks left by position") : t("Comfort picks by position"))}</span><span class="fl-sums">${summary.join("")}</span></summary>
+    ${s.enabled && canEdit ? `<p class="formhint">${esc(t("Tap a champion to lock it for game {g}; tap again to unlock.", { g: s.game }))}</p>` : ""}<div class="fl-grid">${pools}</div></details>`;
 }
 
 /* ---------- Scouting ---------- */
@@ -1212,7 +1222,7 @@ function viewDraft() {
   }
   const side = `<section class="panel dr-side">${sugg}${answersBlock}${read || `<p class="hint">${esc(t("Your team's damage split and warnings appear here once you pick."))}</p>`}${finish}</section>`;
 
-  return top + setup + `<div class="draft">${col("B")}${pool}${col("R")}</div>` + side;
+  return top + fearlessBar() + setup + `<div class="draft">${col("B")}${pool}${col("R")}</div>` + side + fearlessLanes();
 }
 function draftPick(champ) {
   const d = S.draft; if (d.seq.length >= DRAFT_ORDER.length) return;
@@ -1540,6 +1550,7 @@ document.addEventListener("input", (e) => {
     if (!sb.querySelector('[data-act="scout-discard"]')) sb.querySelector(".right").insertAdjacentHTML("afterbegin", btn("scout-discard", t("Discard")));
   }
 });
+document.addEventListener("toggle", (e) => { if (e.target.id === "flLanes") S.flLanesOpen = e.target.open; }, true);
 document.getElementById("view").addEventListener("focusout", () => setTimeout(() => { if (S.pendingRender) render(); }, 0));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && overlay.innerHTML) closeSheet();
@@ -1552,7 +1563,7 @@ document.getElementById("codeBtn").addEventListener("click", () => {
   setCode(""); S.readOnly = true; render(); toast(t("Editing locked on this device"));
 });
 
-function route() { const h = (location.hash || "").slice(1); S.view = VIEWS.includes(h) ? h : "roster"; render(); const a = document.querySelector(`.tabs a[data-view="${S.view}"]`); if (a && a.scrollIntoView) a.scrollIntoView({ block: "nearest", inline: "nearest" }); }
+function route() { let h = (location.hash || "").slice(1); if (h === "fearless") { h = "draft"; history.replaceState(null, "", "#draft"); } S.view = VIEWS.includes(h) ? h : "roster"; render(); const a = document.querySelector(`.tabs a[data-view="${S.view}"]`); if (a && a.scrollIntoView) a.scrollIntoView({ block: "nearest", inline: "nearest" }); }
 window.addEventListener("hashchange", route);
 setLang(LANG);
 route();
