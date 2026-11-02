@@ -296,8 +296,10 @@ function kindOf(x) { return x.kind === "match" || x.kind === "event" ? x.kind : 
 function isGame(x) { return kindOf(x) !== "event"; }
 function entryName(x) { return kindOf(x) === "event" ? x.title || t("Event") : x.opponent || "TBD"; }
 function kindTag(x) { const k = kindOf(x); return k === "scrim" ? "" : ` <span class="kind-tag ${k}">${k === "match" ? I.trophy : I.pin}${esc(t(k === "match" ? "Tournament" : "Event"))}</span>`; }
-function scrimsOn(date) { return S.scrims.filter(x => x.date === date).sort((a, b) => String(a.time).localeCompare(String(b.time))); }
-function upcomingScrims() { const td = todayYmd(); return S.scrims.filter(x => x.date >= td).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)); }
+function lastDay(x) { return kindOf(x) === "event" && x.endDate > x.date ? x.endDate : x.date; }
+function dayOf(x, date) { return Math.round((parseYmd(date) - parseYmd(x.date)) / 864e5) + 1; }
+function scrimsOn(date) { return S.scrims.filter(x => x.date <= date && lastDay(x) >= date).sort((a, b) => String(a.time).localeCompare(String(b.time))); }
+function upcomingScrims() { const td = todayYmd(); return S.scrims.filter(x => lastDay(x) >= td).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)); }
 function pastScrims() { const td = todayYmd(); return S.scrims.filter(x => x.date < td).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)); }
 function recordOf(list) { const r = { w: 0, l: 0, d: 0 }; list.forEach(x => { if (x.result === "win") r.w++; else if (x.result === "loss") r.l++; else if (x.result === "draw") r.d++; }); return r; }
 function sameTeam(a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase() && !!String(a || "").trim(); }
@@ -431,7 +433,9 @@ function exampleBoard() {
     { id: "ex-s00", example: true, date: prev[5], time: "18:00", opponent: "Lowtide Gaming", format: "Bo3", result: "win", score: "2-0", review: "Early dragon setups worked well.", vod: "", side: "blue", compId: "ex-c1", ours: ["Ornn", "Xin Zhao", "Ahri", "Kai'Sa", "Nautilus"], theirs: ["Jayce", "Nidalee", "Ziggs", "Varus", "Lux"] },
     { id: "ex-s03", example: true, kind: "match", date: prev[2], time: "18:00", opponent: "Ironclad Five", tournament: "Spring Cup", format: "Bo3", result: "win", score: "2-1", review: "Group stage. Won the series on the scaling comp.", vod: "", side: "blue", compId: "ex-c1", ours: ["Ornn", "Vi", "Orianna", "Kai'Sa", "Rakan"], theirs: ["Gnar", "Lee Sin", "Syndra", "Jinx", "Nautilus"] },
     { id: "ex-s4", example: true, kind: "event", date: days[2], time: "20:00", title: "VOD review", notes: "Go through the Northgate games before the rematch." },
-    { id: "ex-s5", example: true, kind: "match", date: days[6], time: "18:00", opponent: "Ironclad Five", tournament: "Spring Cup", format: "Bo3", notes: "Playoffs. Check-in opens 30 minutes before." },
+    { id: "ex-s5", example: true, kind: "event", date: days[5], endDate: days[6], time: "16:00", title: "Clash weekend", notes: "Check-in opens 30 minutes before each day's first round." },
+    { id: "ex-s6", example: true, kind: "match", date: days[6], time: "18:00", opponent: "Ironclad Five", tournament: "Clash", format: "Bo1", notes: "Round 1." },
+    { id: "ex-s7", example: true, kind: "match", date: days[6], time: "19:00", opponent: "", tournament: "Clash", format: "Bo1", notes: "Round 2, opponent after round 1." },
     { id: "ex-s1", example: true, date: days[1], time: "19:00", opponent: "Northgate Esports", format: "Bo3", notes: "Fearless draft. Lobby invite from their captain." },
     { id: "ex-s2", example: true, date: days[3], time: "20:00", opponent: "Crimson Vale Academy", format: "Bo1", notes: "" },
     { id: "ex-s3", example: true, date: days[5], time: "17:00", opponent: "Lowtide Gaming", format: "Block (3 games)", notes: "Practice the protect-the-carry comp." },
@@ -752,27 +756,27 @@ function viewSchedule() {
     const label = `${p.name}, ${wd(dates[i])} ${fmt(dates[i])}: ${stLabel(s)}`;
     return `<button class="av ${s}" type="button" data-act="avail" data-pid="${esc(p.id)}" data-date="${k}" aria-label="${esc(label)}" title="${esc(label)}"${S.readOnly ? " disabled" : ""}>${s === "yes" ? I.check : s === "no" ? I.x : ""}</button>`;
   };
-  const scrimChip = (x, ready) => { const k = kindOf(x); return `<button class="scrim-chip k-${k}${ready || k === "event" ? "" : " short"}" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" title="${esc(t(KINDS.find(e => e.k === k).name))}"${S.readOnly ? " disabled" : ""}><b>${k === "match" ? I.trophy : k === "event" ? I.pin : ""}${esc(x.time || (k === "event" ? t("All day") : "--:--"))}</b><span>${esc(entryName(x))}</span></button>`; };
+  const scrimChip = (x, ready, day) => { const k = kindOf(x); return `<button class="scrim-chip k-${k}${ready || k === "event" ? "" : " short"}" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" title="${esc(t(KINDS.find(e => e.k === k).name))}"${S.readOnly ? " disabled" : ""}><b>${k === "match" ? I.trophy : k === "event" ? I.pin : ""}${esc(day > x.date ? t("Day {n}", { n: dayOf(x, day) }) : x.time || (k === "event" ? t("All day") : "--:--"))}</b><span>${esc(entryName(x))}</span></button>`; };
   const head = keys.map((k, i) => `<th class="${info[i].ready ? "ready" : ""}${k === today ? " today" : ""}" scope="col">
       <div class="dh"><span class="dn">${esc(wd(dates[i]))}</span><span class="dd">${esc(fmt(dates[i]))}</span></div>
       ${info[i].ready ? `<span class="ready-tag">${I.bolt}${esc(t("Ready for scrims"))}</span>` : ""}
-      <div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready)).join("")}</div>
+      <div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready, k)).join("")}</div>
       ${S.readOnly ? "" : `<button class="add-day" type="button" data-act="add-scrim" data-date="${k}" aria-label="${esc(t("Add to {day}", { day: wd(dates[i]) }))}">${I.plus}</button>`}</th>`).join("");
   const rows = ps.map((p, pi) => `<tr class="${p.id === me ? "me" : ""}${p.sub && (pi === 0 || !ps[pi - 1].sub) && p.id !== me ? " first-sub" : ""}"><th scope="row"><span class="who-cell"><span class="role">${ri(p.primaryRole)}${ROLE[p.primaryRole]?.code || ""}</span><span class="nm">${esc(p.name)}</span>${p.sub ? `<span class="subtag">${esc(t("Sub"))}</span>` : ""}</span></th>${keys.map((k, i) => `<td class="${info[i].ready ? "ready" : ""}">${cellBtn(p, k, i)}</td>`).join("")}</tr>`).join("");
   const foot = `<tr><th scope="row" class="label">${esc(t("Available"))}</th>${info.map(x => `<td class="${x.ready ? "ready" : ""}"><span class="cnt ${x.ready ? "ok" : x.yes.length >= READY_N - 1 ? "near" : ""}">${cntText(x.yes.length)}</span>${x.ready ? `<small>${esc(x.startersIn ? t("Starting five") : t("With subs"))}</small>` : ""}</td>`).join("")}</tr>`;
   const table = `<div class="scroll avail-wrap"><table class="avail"><thead><tr><th scope="col" class="corner label">${esc(t("Player"))}</th>${head}</tr></thead><tbody>${rows}</tbody><tfoot>${foot}</tfoot></table></div>`;
   const cards = `<div class="daycards">${keys.map((k, i) => `<section class="daycard${info[i].ready ? " ready" : ""}${k === today ? " today" : ""}">
       <header><div><span class="dn">${esc(wd(dates[i]))}</span> <span class="dd">${esc(fmt(dates[i]))}</span></div><div class="dc-right">${info[i].ready ? `<span class="ready-tag">${I.bolt}${esc(t("Ready"))}</span>` : ""}<span class="cnt ${info[i].ready ? "ok" : info[i].yes.length >= READY_N - 1 ? "near" : ""}">${cntText(info[i].yes.length)}</span></div></header>
-      ${scrimsOn(k).length || !S.readOnly ? `<div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready)).join("")}${S.readOnly ? "" : `<button class="add-day inline" type="button" data-act="add-scrim" data-date="${k}">${I.plus}${esc(t("Add"))}</button>`}</div>` : ""}
+      ${scrimsOn(k).length || !S.readOnly ? `<div class="dscrims">${scrimsOn(k).map(x => scrimChip(x, info[i].ready, k)).join("")}${S.readOnly ? "" : `<button class="add-day inline" type="button" data-act="add-scrim" data-date="${k}">${I.plus}${esc(t("Add"))}</button>`}</div>` : ""}
       <div class="dc-players">${ps.map(p => `<div class="dc-p${p.id === me ? " me" : ""}"><span class="nm">${esc(p.name)}</span>${cellBtn(p, k, i)}</div>`).join("")}</div></section>`).join("")}</div>`;
   return top + bar + hint + table + cards + `<div class="two">${upcomingPanel()}${historyPanel()}</div>`;
 }
 function scrimMeta(x) { return [x.time, kindOf(x) === "match" ? x.tournament : "", isGame(x) && x.format ? t(x.format) : ""].filter(Boolean).join(" · "); }
-function editLabel(x) { return kindOf(x) === "event" ? t("Edit {name}", { name: entryName(x) }) : t("Edit scrim against {team}", { team: x.opponent }); }
+function editLabel(x) { return kindOf(x) === "event" ? t("Edit {name}", { name: entryName(x) }) : t("Edit scrim against {team}", { team: x.opponent || "TBD" }); }
 function upcomingPanel() {
   const up = upcomingScrims();
-  return `<section class="panel"><h3>${esc(t("Coming up"))}</h3>${up.length ? `<ul class="matches">${up.map(x => { const d = dayInfo(x.date), dt = parseYmd(x.date); return `<li>
-      <div class="sdate"><b>${esc(wd(dt))}</b><span>${esc(fmt(dt))}</span></div>
+  return `<section class="panel"><h3>${esc(t("Coming up"))}</h3>${up.length ? `<ul class="matches">${up.map(x => { const d = dayInfo(x.date), dt = parseYmd(x.date), end = lastDay(x) > x.date ? parseYmd(lastDay(x)) : null; return `<li>
+      <div class="sdate"><b>${esc(wd(dt))}${end ? "–" + esc(wd(end)) : ""}</b><span>${esc(fmt(dt))}${end ? "–" + esc(fmt(end)) : ""}</span></div>
       <div class="smain"><b>${esc(entryName(x))}${kindTag(x)}</b><span>${esc(scrimMeta(x))}${x.notes ? (scrimMeta(x) ? " · " : "") + esc(x.notes) : ""}</span></div>
       <span class="flag ${d.ready ? "good" : d.yes.length >= READY_N - 1 ? "warn" : "bad"}">${esc(d.ready ? (d.startersIn ? t("Starting five") : t("With subs")) : t("{n} of {m} free", { n: d.yes.length, m: READY_N }))}</span>
       ${S.readOnly ? "" : `<button class="iconbtn" type="button" data-act="edit-scrim" data-id="${esc(x.id)}" aria-label="${esc(editLabel(x))}">${I.edit}</button>`}</li>`; }).join("")}</ul>` : `<span class="formhint">${esc(t("Nothing booked yet. Add scrims, tournament matches and team events."))}</span>`}</section>`;
@@ -805,14 +809,16 @@ function editScrim(id, date) {
   openSheet(title, `
   <fieldset><legend>${esc(t("Details"))}</legend>
     <div class="f"><span>${esc(t("Type"))}</span><div class="radio-row">${KINDS.map(k => `<label><input type="radio" name="skind" value="${k.k}"${kind === k.k ? " checked" : ""}>${esc(t(k.name))}</label>`).join("")}</div></div>
-    <label class="f" data-for="game"><span>${esc(t("Opponent"))}</span><input id="sOpp" name="opp" required value="${esc(d.opponent || "")}" placeholder="${esc(t("Team name"))}" list="oppList"></label>
+    <label class="f" data-for="game"><span>${esc(t("Opponent"))}</span><input id="sOpp" name="opp" value="${esc(d.opponent || "")}" placeholder="${esc(t("Team name"))}" list="oppList"></label>
     <datalist id="oppList">${[...new Set(S.scrims.map(s => s.opponent).filter(Boolean))].map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>
     <label class="f" data-for="match"><span>${esc(t("Tournament"))}</span><input id="sTour" name="stour" value="${esc(d.tournament || "")}" placeholder="${esc(t("e.g. Spring Cup, group stage"))}" list="tourList" maxlength="80"></label>
     <datalist id="tourList">${[...new Set(S.scrims.map(s => s.tournament).filter(Boolean))].map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>
     <label class="f" data-for="event"><span>${esc(t("Name"))}</span><input id="sTitle" name="stitle" value="${esc(d.title || "")}" placeholder="${esc(t("e.g. Qualifier day, LAN, VOD review"))}" maxlength="80"></label>
     <div class="frow"><label class="f"><span>${esc(t("Date"))}</span><input id="sDate" name="sdate" type="date" required value="${esc(d.date)}"></label>
+    <label class="f" data-for="event"><span>${esc(t("End date"))}</span><input id="sEnd" name="send" type="date" value="${esc(d.endDate || "")}" aria-describedby="sEndHint"></label>
     <label class="f"><span>${esc(t("Start time"))}</span><input id="sTime" name="stime" type="time" value="${esc(d.time || "")}"></label>
     <label class="f" data-for="game"><span>${esc(t("Format"))}</span><select id="sFmt" name="sfmt">${FORMATS.map(f => opt(f, t(f), d.format === f)).join("")}</select></label></div>
+    <p class="formhint" id="sEndHint" data-for="event">${esc(t("Leave the end date empty for a one-day event."))}</p>
     <p class="formhint" id="sAvail"></p>
     <label class="f"><span>${esc(t("Notes"))}</span><textarea id="sNotes" name="snotes" rows="2" placeholder="${esc(t("e.g. Fearless draft, lobby details"))}">${esc(d.notes || "")}</textarea></label>
   </fieldset>
@@ -832,16 +838,17 @@ function editScrim(id, date) {
       const k = (f.querySelector('[name="skind"]:checked') || {}).value || "scrim";
       const opponent = f.opp.value.trim(), name = f.stitle.value.trim();
       if (k === "event" && !name) { toast(t("Give the event a name before saving.")); f.stitle.focus(); return false; }
-      if (k !== "event" && !opponent) { toast(t("Add the opponent's name before saving.")); f.opp.focus(); return false; }
+      if (k === "scrim" && !opponent) { toast(t("Add the opponent's name before saving.")); f.opp.focus(); return false; }
       if (!f.sdate.value) { toast(t("Pick a date first.")); f.sdate.focus(); return false; }
+      if (k === "event" && f.send.value && f.send.value < f.sdate.value) { toast(t("The end date can't be before the start date.")); f.send.focus(); return false; }
       const res = (f.querySelector('[name="sres"]:checked') || {}).value || "";
-      const data = k === "event" ? { kind: k, date: f.sdate.value, time: f.stime.value, title: name, notes: f.snotes.value.trim() }
+      const data = k === "event" ? { kind: k, date: f.sdate.value, time: f.stime.value, title: name, notes: f.snotes.value.trim(), ...(f.send.value > f.sdate.value ? { endDate: f.send.value } : {}) }
         : { kind: k, date: f.sdate.value, time: f.stime.value, opponent, format: f.sfmt.value, notes: f.snotes.value.trim(), result: res, score: f.sscore.value.trim(), review: f.sreview.value.trim(), vod: f.svod.value.trim(),
           side: f.sside.value, compId: f.scomp.value, ours: parsePicks(f.sours.value), theirs: parsePicks(f.stheirs.value) };
       if (k === "match") data.tournament = f.stour.value.trim();
       if (x && x.example) data.example = true;
       const ok = await writeDoc("scrims", x ? x.id : uid("s-"), data);
-      if (ok) toast(x ? t("Schedule updated") : k === "event" ? t("{name} added", { name }) : t(k === "match" ? "Tournament match vs {team} added" : "Scrim vs {team} added", { team: opponent }));
+      if (ok) toast(x ? t("Schedule updated") : k === "event" ? t("{name} added", { name }) : k === "match" && !opponent ? t("Tournament match added") : t(k === "match" ? "Tournament match vs {team} added" : "Scrim vs {team} added", { team: opponent }));
       return ok;
     },
     onDelete: x ? async () => { const ok = await deleteDoc("scrims", x.id); if (ok) toast(t("Removed from schedule")); return ok; } : null,
@@ -853,7 +860,9 @@ function editScrim(id, date) {
     const k = (form.querySelector('[name="skind"]:checked') || {}).value || "scrim";
     form.querySelectorAll("[data-for]").forEach(el => { const w = el.dataset.for; el.hidden = !(w === k || (w === "game" && k !== "event")); });
   };
-  form.querySelectorAll('[name="skind"]').forEach(r => r.addEventListener("change", showKind)); showKind();
+  // Opponent can wait until the bracket is out for tournament matches
+  const oppHint = () => { const k = (form.querySelector('[name="skind"]:checked') || {}).value; form.opp.placeholder = k === "match" ? t("Team name, or leave empty until you know") : t("Team name"); };
+  form.querySelectorAll('[name="skind"]').forEach(r => r.addEventListener("change", () => { showKind(); oppHint(); })); showKind(); oppHint();
   const showAvail = () => { const k = form.sdate.value; const el = document.getElementById("sAvail"); if (!k) { el.textContent = ""; return; } const di = dayInfo(k); el.innerHTML = di.ready ? `<span class="flag good">${esc(t("{n} players free that day", { n: di.yes.length }))}${di.startersIn ? ", " + esc(t("starting five ready")) : ""}</span>` : `<span class="flag ${di.yes.length >= READY_N - 1 ? "warn" : "bad"}">${esc(t("Only {n} of {m} free that day", { n: di.yes.length, m: READY_N }))}${di.yes.length ? ": " + esc(di.yes.map(p => p.name).join(", ")) : ""}</span>`; };
   form.sdate.addEventListener("change", showAvail); showAvail();
 }
@@ -865,8 +874,8 @@ function weekSummary() {
     const di = dayInfo(k), sc = scrimsOn(k);
     const missing = S.players.filter(p => !p.sub && availOf(p.id, k) !== "yes").map(p => p.name);
     let line = `${wd(dates[i])} ${fmt(dates[i])}: ${di.ready ? "✅ " + t("Ready") : "⏳ " + cntText(di.yes.length)}`;
-    if (sc.length) line += " · " + sc.map(x => kindOf(x) === "event" ? `📌 ${x.time || ""} ${entryName(x)}`.replace("  ", " ")
-      : `${kindOf(x) === "match" ? "🏆 " : ""}${x.time || ""} vs ${x.opponent}${x.format ? " (" + t(x.format) + ")" : ""}${kindOf(x) === "match" && x.tournament ? " · " + x.tournament : ""}`.trim()).join(", ");
+    if (sc.length) line += " · " + sc.map(x => kindOf(x) === "event" ? (k > x.date ? `📌 ${entryName(x)} (${t("Day {n}", { n: dayOf(x, k) })})` : `📌 ${x.time || ""} ${entryName(x)}`.replace("  ", " "))
+      : `${kindOf(x) === "match" ? "🏆 " : ""}${x.time || ""} vs ${x.opponent || "TBD"}${x.format ? " (" + t(x.format) + ")" : ""}${kindOf(x) === "match" && x.tournament ? " · " + x.tournament : ""}`.trim()).join(", ");
     if (!di.ready && missing.length && missing.length <= 3) line += " · " + t("missing: {names}", { names: missing.join(", ") });
     out.push(line);
   });
@@ -889,18 +898,18 @@ function downloadIcs() {
   const evs = up.map(x => {
     const k = kindOf(x), base = ["BEGIN:VEVENT", `UID:${x.id}@five-stack-board`, `DTSTAMP:${stamp(new Date())}`];
     if (k === "event") {
-      // Events without a start time are all-day; with one they get two hours
-      const start = parseYmd(x.date);
+      // Multi-day events and events without a start time are all-day; others get two hours
+      const start = parseYmd(x.date), multi = lastDay(x) > x.date;
       let when;
-      if (x.time) { const [h, m] = x.time.split(":").map(Number); start.setHours(h || 0, m || 0, 0, 0); when = [`DTSTART:${stamp(start)}`, `DTEND:${stamp(new Date(start.getTime() + 2 * 3600e3))}`]; }
-      else { const end = new Date(start); end.setDate(end.getDate() + 1); when = [`DTSTART;VALUE=DATE:${day(start)}`, `DTEND;VALUE=DATE:${day(end)}`]; }
-      return [...base, ...when, `SUMMARY:${escIcs(entryName(x))}`, x.notes ? `DESCRIPTION:${escIcs(x.notes)}` : "", "END:VEVENT"].filter(Boolean).join("\r\n");
+      if (x.time && !multi) { const [h, m] = x.time.split(":").map(Number); start.setHours(h || 0, m || 0, 0, 0); when = [`DTSTART:${stamp(start)}`, `DTEND:${stamp(new Date(start.getTime() + 2 * 3600e3))}`]; }
+      else { const end = parseYmd(lastDay(x)); end.setDate(end.getDate() + 1); when = [`DTSTART;VALUE=DATE:${day(start)}`, `DTEND;VALUE=DATE:${day(end)}`]; }
+      return [...base, ...when, `SUMMARY:${escIcs(entryName(x))}`, x.notes || (multi && x.time) ? `DESCRIPTION:${escIcs([multi && x.time ? "Starts " + x.time : "", x.notes].filter(Boolean).join("\n"))}` : "", "END:VEVENT"].filter(Boolean).join("\r\n");
     }
     const [h, m] = (x.time || "19:00").split(":").map(Number);
     const start = parseYmd(x.date); start.setHours(h || 0, m || 0, 0, 0);
     const hours = /Bo5/.test(x.format) ? 4 : /Bo3|3 games/.test(x.format) ? 3 : /2 games/.test(x.format) ? 2 : 1;
     const end = new Date(start.getTime() + hours * 3600e3);
-    const what = k === "match" ? `${x.tournament || "Tournament"}: vs ${x.opponent}` : `Scrim vs ${x.opponent}`;
+    const what = k === "match" ? `${x.tournament || "Tournament"}: vs ${x.opponent || "TBD"}` : `Scrim vs ${x.opponent}`;
     return [...base, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`, `SUMMARY:${escIcs(`${what}${x.format ? " (" + x.format + ")" : ""}`)}`, x.notes ? `DESCRIPTION:${escIcs(x.notes)}` : "", "END:VEVENT"].filter(Boolean).join("\r\n");
   });
   const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Five-Stack Board//EN", "CALSCALE:GREGORIAN", ...evs, "END:VCALENDAR"].join("\r\n");
@@ -1006,7 +1015,7 @@ function viewScouting() {
   const v = scoutValues(), saved = scoutSaved();
   const dirty = !!S.scoutDraft && SCOUT_FIELDS.some(k => (S.scoutDraft[k] ?? (saved[k] || "")) !== (saved[k] || ""));
   const ro = S.readOnly;
-  const next = upcomingScrims().filter(isGame)[0];
+  const next = upcomingScrims().filter(x => isGame(x) && x.opponent)[0];
   const top = pagehead(t("Scouting"), t("Notes on the next team you play: what they're best at, where they're weak, and how we plan to win."));
   const nextCard = next && !sameTeam(next.opponent, v.opponent) ? `<div class="notice"><span>${esc(t(kindOf(next) === "match" ? "Next tournament match: {team} on {date}" : "Next scrim: {team} on {date}", { team: next.opponent, date: fmt(parseYmd(next.date), { weekday: "short", day: "numeric", month: "short" }) + (next.time ? ", " + next.time : "") }))}</span>${ro ? "" : btn("scout-use-next", t("Scout this team"), "", "small")}</div>` : "";
   const past = S.scrims.filter(x => sameTeam(x.opponent, v.opponent) && x.result);
@@ -1614,7 +1623,7 @@ document.addEventListener("click", (e) => {
   }
   if (act === "scout-save") return saveScouting();
   if (act === "scout-discard") { S.scoutDraft = null; render(); return; }
-  if (act === "scout-use-next") { const nx = upcomingScrims().filter(isGame)[0]; if (nx) { S.scoutDraft = { ...(S.scoutDraft || {}), opponent: nx.opponent, matchDate: nx.date }; render(); } return; }
+  if (act === "scout-use-next") { const nx = upcomingScrims().filter(x => isGame(x) && x.opponent)[0]; if (nx) { S.scoutDraft = { ...(S.scoutDraft || {}), opponent: nx.opponent, matchDate: nx.date }; render(); } return; }
   if (act === "filter") { S.roleFilter = el.dataset.val; render(); return; }
   if (act === "stats-kind") { S.statsKind = el.dataset.val; render(); return; }
   if (act === "load-ex") return loadExamples();
