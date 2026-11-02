@@ -582,4 +582,18 @@ window.FSB_DE = {
   "Comfort picks left by position": "Verbleibende Comfort-Picks nach Position",
   "Comfort picks by position": "Comfort-Picks nach Position",
   "Tap a champion to lock it for game {g}; tap again to unlock.": "Tippe auf einen Champion, um ihn für Spiel {g} zu sperren; nochmal tippen zum Entsperren.",
+
+  // Backup
+  "Backup": "Backup",
+  "Save the whole board (players, comps, scrims, scouting, everything) as a file. Restoring a backup replaces the board for everyone.": "Speichere das ganze Board (Spieler, Comps, Scrims, Scouting, alles) als Datei. Ein Backup wiederherzustellen ersetzt das Board für alle.",
+  "Download backup": "Backup herunterladen",
+  "Restore from backup…": "Aus Backup wiederherstellen…",
+  "That file isn't a Five-Stack Board backup.": "Diese Datei ist kein Five-Stack-Board-Backup.",
+  "Replace the whole board with the backup from {when} ({n} players)? The current board is downloaded first.": "Das ganze Board durch das Backup vom {when} ({n} Spieler) ersetzen? Das aktuelle Board wird vorher heruntergeladen.",
+  "Yes, restore": "Ja, wiederherstellen",
+  "Couldn't make a backup. Try again in a moment.": "Backup konnte nicht erstellt werden. Versuch es gleich noch einmal.",
+  "Backup downloaded": "Backup heruntergeladen",
+  "Backup restored": "Backup wiederhergestellt",
+  "Couldn't restore. Check your connection and try again.": "Wiederherstellen fehlgeschlagen. Prüf deine Verbindung und versuch es erneut.",
+  "Couldn't restore. Try again in a moment.": "Wiederherstellen fehlgeschlagen. Versuch es gleich noch einmal.",
 };

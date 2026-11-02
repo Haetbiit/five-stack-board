@@ -1,6 +1,8 @@
 // Shared storage for the Five-Stack Board, backed by Upstash Redis.
 // GET  /api/board[?since=<version>]  -> whole board (anyone with the link can view)
 // POST /api/board                    -> write; needs the x-team-code header to match TEAM_CODE
+//      { action: "export" }          -> full backup, including old availability
+//      { action: "import", backup }  -> replaces the whole board with a backup
 import { redis, codeMatches, KEY, TEAM_CODE, storeConfigured, resetConnection } from "./_lib/store.js";
 
 // Collection -> max number of entries
@@ -9,6 +11,36 @@ const MAX_DOC_BYTES = 20000;
 const MAX_LOGO_CHARS = 120000;
 const MAX_BATCH = 100;
 const AVAIL_KEEP_DAYS = 70;
+
+const ID_RE = /^[\w-]{1,64}$/;
+const LOGO_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+const BACKUP_FORMAT = 1;
+
+// A document as stored: JSON without its id, within the size limit
+function docJson(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return { status: 400, error: "That request isn't valid." };
+  const clean = { ...data };
+  delete clean.id;
+  const json = JSON.stringify(clean);
+  if (Buffer.byteLength(json) > MAX_DOC_BYTES) return { status: 413, error: "That entry is too long to save. Shorten the notes and try again." };
+  return { json };
+}
+function metaJson(data) {
+  const teamName = String((data && data.teamName) || "").trim().slice(0, 40);
+  // Team logo: a small image the page has already resized, sent as a data URL
+  const logo = String((data && data.logo) || "");
+  if (logo && (!LOGO_RE.test(logo) || logo.length > MAX_LOGO_CHARS)) return { error: "That logo can't be used. Pick a PNG, JPG or WebP image." };
+  return { json: JSON.stringify(logo ? { teamName, logo } : { teamName }) };
+}
+async function readAll() {
+  const cols = Object.keys(COLLECTIONS);
+  const replies = await redis([...cols.map((c) => ["HGETALL", KEY + c]), ["GET", KEY + "meta"], ["GET", KEY + "version"]]);
+  const collections = {};
+  cols.forEach((c, i) => { collections[c] = hashToList(replies[i] || []); });
+  let meta = {};
+  try { meta = replies[cols.length] ? JSON.parse(replies[cols.length]) : {}; } catch {}
+  return { collections, meta, version: Number(replies[cols.length + 1] || 0) };
+}
 
 function hashToList(flat) {
   const out = [];
@@ -30,14 +62,15 @@ export default async function handler(req, res) {
       if (req.query && req.query.since !== undefined && Number(req.query.since) === version) {
         return res.status(200).json({ unchanged: true, version });
       }
-      const cols = Object.keys(COLLECTIONS);
-      const replies = await redis([...cols.map((c) => ["HGETALL", KEY + c]), ["GET", KEY + "meta"]]);
-      const out = { version };
-      cols.forEach((c, i) => { out[c] = hashToList(replies[i] || []); });
-      // Old availability is kept in Redis but not sent, so the payload stays small
+      const all = await readAll();
+      const out = { version, ...all.collections, meta: all.meta };
+      // Availability older than AVAIL_KEEP_DAYS is deleted when the board is next read, so it can't pile up
       const cutoff = new Date(Date.now() - AVAIL_KEEP_DAYS * 864e5).toISOString().slice(0, 10);
-      out.avail = out.avail.filter((a) => typeof a.date === "string" && a.date >= cutoff);
-      try { out.meta = replies[cols.length] ? JSON.parse(replies[cols.length]) : {}; } catch { out.meta = {}; }
+      const old = out.avail.filter((a) => !(typeof a.date === "string" && a.date >= cutoff));
+      if (old.length) {
+        out.avail = out.avail.filter((a) => !old.includes(a));
+        for (let i = 0; i < old.length; i += 500) await redis([["HDEL", KEY + "avail", ...old.slice(i, i + 500).map((a) => a.id)]]);
+      }
       return res.status(200).json(out);
     }
 
@@ -52,11 +85,39 @@ export default async function handler(req, res) {
       if (action === "verify") return res.status(200).json({ ok: true });
 
       if (action === "meta") {
-        const teamName = String((data && data.teamName) || "").trim().slice(0, 40);
-        // Team logo: a small image the page has already resized, sent as a data URL
-        const logo = String((data && data.logo) || "");
-        if (logo && (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(logo) || logo.length > MAX_LOGO_CHARS)) return res.status(400).json({ error: "That logo can't be used. Pick a PNG, JPG or WebP image." });
-        await redis([["SET", KEY + "meta", JSON.stringify(logo ? { teamName, logo } : { teamName })], ["INCR", KEY + "version"]]);
+        const m = metaJson(data);
+        if (m.error) return res.status(400).json({ error: m.error });
+        await redis([["SET", KEY + "meta", m.json], ["INCR", KEY + "version"]]);
+        return res.status(200).json({ ok: true });
+      }
+
+      if (action === "export") {
+        const all = await readAll();
+        return res.status(200).json({ app: "five-stack-board", format: BACKUP_FORMAT, exportedAt: new Date().toISOString(), ...all });
+      }
+
+      if (action === "import") {
+        // Check the whole backup first; nothing is written unless all of it is valid
+        const b = body.backup;
+        if (!b || b.app !== "five-stack-board" || !b.collections || typeof b.collections !== "object") return res.status(400).json({ error: "That file isn't a Five-Stack Board backup." });
+        if (Number(b.format) > BACKUP_FORMAT) return res.status(400).json({ error: "That backup comes from a newer version of the board." });
+        const m = metaJson(b.meta || {});
+        if (m.error) return res.status(400).json({ error: m.error });
+        const writes = [];
+        for (const c of Object.keys(COLLECTIONS)) {
+          const list = b.collections[c] || [];
+          if (!Array.isArray(list) || list.length > COLLECTIONS[c]) return res.status(400).json({ error: "That backup has more entries than the board allows." });
+          const fields = [];
+          for (const d of list) {
+            if (!d || typeof d.id !== "string" || !ID_RE.test(d.id)) return res.status(400).json({ error: "That backup has a damaged entry and can't be restored." });
+            const r = docJson(d);
+            if (r.error) return res.status(400).json({ error: r.error });
+            fields.push(d.id, r.json);
+          }
+          writes.push(["DEL", KEY + c]);
+          for (let i = 0; i < fields.length; i += 400) writes.push(["HSET", KEY + c, ...fields.slice(i, i + 400)]);
+        }
+        await redis([...writes, ["SET", KEY + "meta", m.json], ["INCR", KEY + "version"]]);
         return res.status(200).json({ ok: true });
       }
 
@@ -67,18 +128,14 @@ export default async function handler(req, res) {
       const commands = [];
       const newPerCol = {};
       for (const op of ops) {
-        if (!op || !Object.hasOwn(COLLECTIONS, op.col) || typeof op.id !== "string" || !/^[\w-]{1,64}$/.test(op.id)) {
+        if (!op || !Object.hasOwn(COLLECTIONS, op.col) || typeof op.id !== "string" || !ID_RE.test(op.id)) {
           return res.status(400).json({ error: "That request isn't valid." });
         }
         if (op.action === "delete") { commands.push(["HDEL", KEY + op.col, op.id]); continue; }
-        if (op.action !== "set" || !op.data || typeof op.data !== "object" || Array.isArray(op.data)) {
-          return res.status(400).json({ error: "That request isn't valid." });
-        }
-        const clean = { ...op.data };
-        delete clean.id;
-        const json = JSON.stringify(clean);
-        if (Buffer.byteLength(json) > MAX_DOC_BYTES) return res.status(413).json({ error: "That entry is too long to save. Shorten the notes and try again." });
-        commands.push(["HSET", KEY + op.col, op.id, json]);
+        if (op.action !== "set") return res.status(400).json({ error: "That request isn't valid." });
+        const r = docJson(op.data);
+        if (r.error) return res.status(r.status).json({ error: r.error });
+        commands.push(["HSET", KEY + op.col, op.id, r.json]);
         (newPerCol[op.col] ??= new Set()).add(op.id);
       }
 

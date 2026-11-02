@@ -30,3 +30,9 @@ English and German, switchable in the header (defaults to the browser language).
 5. Redeploy.
 
 Anyone with the link can view the board. Adding or changing players and comps needs the team code; each device remembers it after the first unlock.
+
+## Backups
+
+Open **Team profile** (the pencil next to the team name) and use **Download backup** to save the whole board as a JSON file. **Restore from backup** replaces the board for everyone; it downloads the current board first, so a wrong file can be undone. Upstash's free plan has no backups of its own, so download one now and then.
+
+Availability older than 70 days is deleted automatically.

@@ -1432,7 +1432,12 @@ function renameTeam() {
     <div class="f"><span>${esc(t("Team logo"))}</span><div class="logo-row"><span class="logo-prev" id="logoPrev">${preview()}</span>
       <div class="logo-actions"><label class="btn small">${I.plus}<span id="logoPick">${esc(logo ? t("Change logo") : t("Upload logo"))}</span><input id="tLogo" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="sr"></label>
       <button class="btn small ghost" type="button" id="logoClear"${logo ? "" : " hidden"}>${esc(t("Remove logo"))}</button></div></div>
-      <p class="formhint">${esc(t("A square image works best. It's cropped to a square and shrunk, then shown in the header and the browser tab for everyone."))}</p></div>`, {
+      <p class="formhint">${esc(t("A square image works best. It's cropped to a square and shrunk, then shown in the header and the browser tab for everyone."))}</p></div>
+    ${S.readOnly ? "" : `<fieldset><legend>${esc(t("Backup"))}</legend>
+      <p class="formhint">${esc(t("Save the whole board (players, comps, scrims, scouting, everything) as a file. Restoring a backup replaces the board for everyone."))}</p>
+      <div class="logo-actions"><button class="btn small" type="button" id="bkDown">${I.copy}${esc(t("Download backup"))}</button>
+      <label class="btn small ghost">${esc(t("Restore from backup…"))}<input id="bkFile" type="file" accept="application/json,.json" class="sr"></label></div>
+      <div class="confirm" id="bkConfirm" hidden></div></fieldset>`}`, {
     onSubmit: async (f) => {
       const ok = await saveMeta({ teamName: f.tname.value.trim(), logo });
       if (ok) toast(t("Team profile saved"));
@@ -1446,6 +1451,55 @@ function renameTeam() {
     e.target.value = "";
   });
   document.getElementById("logoClear").addEventListener("click", () => { logo = ""; sync(); });
+  if (S.readOnly) return;
+  document.getElementById("bkDown").addEventListener("click", () => downloadBackup());
+  document.getElementById("bkFile").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; e.target.value = "";
+    let b = null; try { b = JSON.parse(await file.text()); } catch (err) {}
+    if (!b || b.app !== "five-stack-board" || !b.collections) { toast(t("That file isn't a Five-Stack Board backup.")); return; }
+    const box = document.getElementById("bkConfirm");
+    const when = b.exportedAt ? new Date(b.exportedAt).toLocaleString(locale(), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "?";
+    box.hidden = false;
+    box.innerHTML = `<span>${esc(t("Replace the whole board with the backup from {when} ({n} players)? The current board is downloaded first.", { when, n: (b.collections.players || []).length }))}</span><button class="btn danger small" type="button" id="bkYes">${esc(t("Yes, restore"))}</button><button class="btn small" type="button" id="bkNo">${esc(t("Cancel"))}</button>`;
+    document.getElementById("bkNo").addEventListener("click", () => { box.hidden = true; box.innerHTML = ""; });
+    document.getElementById("bkYes").addEventListener("click", async () => { if (await restoreBackup(b)) closeSheet(); });
+  });
+}
+
+/* ---------- Backup ---------- */
+async function boardBackup() {
+  if (S.mode !== "api") { const collections = {}; COLS.forEach(c => { collections[c] = S[c]; }); return { app: "five-stack-board", format: 1, exportedAt: new Date().toISOString(), collections, meta: S.meta }; }
+  const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json", "x-team-code": getCode() }, body: JSON.stringify({ action: "export" }) });
+  let j = null; try { j = await r.json(); } catch (e) {}
+  if (!r.ok || !j) throw new Error((j && j.error) || t("Couldn't make a backup. Try again in a moment."));
+  return j;
+}
+function saveFile(name, text) {
+  const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+async function downloadBackup(label) {
+  try {
+    const b = await boardBackup();
+    const slug = String(S.meta.teamName || "board").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "board";
+    saveFile(`five-stack-board-${slug}-${label ? label + "-" : ""}${ymd(new Date())}.json`, JSON.stringify(b, null, 1));
+    if (!label) toast(t("Backup downloaded"));
+    return true;
+  } catch (e) { toast(e.message || t("Couldn't make a backup. Try again in a moment.")); return false; }
+}
+async function restoreBackup(b) {
+  // Keep a copy of what's about to be replaced, in case the wrong file was picked
+  if (!(await downloadBackup("before-restore"))) return false;
+  if (S.mode !== "api") {
+    COLS.forEach(c => { S[c] = Array.isArray(b.collections[c]) ? b.collections[c] : []; });
+    S.meta = b.meta || {}; localPersist(); render(); toast(t("Backup restored")); return true;
+  }
+  let r; try { r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json", "x-team-code": getCode() }, body: JSON.stringify({ action: "import", backup: b }) }); }
+  catch (e) { toast(t("Couldn't restore. Check your connection and try again.")); return false; }
+  let j = null; try { j = await r.json(); } catch (e) {}
+  if (!r.ok) { toast((j && j.error) || t("Couldn't restore. Try again in a moment.")); return false; }
+  await poll(true); toast(t("Backup restored")); return true;
 }
 
 /* ---------- Events ---------- */
