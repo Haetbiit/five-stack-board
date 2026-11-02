@@ -1,57 +1,13 @@
 // Shared storage for the Five-Stack Board, backed by Upstash Redis.
 // GET  /api/board[?since=<version>]  -> whole board (anyone with the link can view)
 // POST /api/board                    -> write; needs the x-team-code header to match TEAM_CODE
-// Works with either Upstash's REST API (KV_REST_API_URL + token) or a plain Redis connection string (REDIS_URL).
-import { createHash, timingSafeEqual } from "node:crypto";
-import { createClient } from "redis";
+import { redis, codeMatches, KEY, TEAM_CODE, storeConfigured, resetConnection } from "./_lib/store.js";
 
-const REST_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const REST_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-const TCP_URL = process.env.REDIS_URL || process.env.KV_URL;
-const TEAM_CODE = process.env.TEAM_CODE || "";
-
-const KEY = "fsb:";
 // Collection -> max number of entries
 const COLLECTIONS = { players: 50, comps: 200, scrims: 1000, avail: 20000, fearless: 5, scouting: 20 };
 const MAX_DOC_BYTES = 20000;
 const MAX_BATCH = 100;
 const AVAIL_KEEP_DAYS = 70;
-
-// One shared connection per warm function instance
-let tcpClient = null;
-async function tcp() {
-  if (tcpClient && tcpClient.isReady) return tcpClient;
-  if (!tcpClient) {
-    tcpClient = createClient({ url: TCP_URL, socket: { connectTimeout: 5000, reconnectStrategy: (n) => (n > 3 ? false : 200 * n) } });
-    tcpClient.on("error", (e) => console.error("redis", e.message));
-  }
-  if (!tcpClient.isOpen) await tcpClient.connect();
-  return tcpClient;
-}
-
-async function redis(commands) {
-  if (!REST_URL || !REST_TOKEN) {
-    const c = await tcp();
-    // Sent in the same tick, so node-redis pipelines them
-    return Promise.all(commands.map((cmd) => c.sendCommand(cmd.map(String))));
-  }
-  const r = await fetch(`${REST_URL}/pipeline`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${REST_TOKEN}`, "Content-Type": "application/json" },
-    body: JSON.stringify(commands),
-  });
-  if (!r.ok) throw new Error(`Redis HTTP ${r.status}`);
-  const out = await r.json();
-  for (const o of out) if (o.error) throw new Error(o.error);
-  return out.map((o) => o.result);
-}
-
-function codeMatches(given) {
-  if (!TEAM_CODE || typeof given !== "string" || !given) return false;
-  const a = createHash("sha256").update(given.trim()).digest();
-  const b = createHash("sha256").update(TEAM_CODE).digest();
-  return timingSafeEqual(a, b);
-}
 
 function hashToList(flat) {
   const out = [];
@@ -63,7 +19,7 @@ function hashToList(flat) {
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-  if (!(REST_URL && REST_TOKEN) && !TCP_URL) {
+  if (!storeConfigured()) {
     return res.status(503).json({ error: "The board's database isn't connected yet. Connect Upstash Redis to this project in Vercel, then redeploy." });
   }
   try {
@@ -146,7 +102,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed." });
   } catch (e) {
     console.error(e);
-    if (tcpClient) { try { tcpClient.disconnect(); } catch {} tcpClient = null; }
+    resetConnection();
     return res.status(500).json({ error: "The board's database didn't respond. Try again in a moment." });
   }
 }

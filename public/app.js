@@ -39,6 +39,7 @@ const I = {
   lock: SVG('<rect x="4" y="11" width="16" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
   trash: SVG('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'),
   copy: SVG('<rect x="9" y="9" width="13" height="13" rx="1"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>'),
+  sync: SVG('<path d="M21 12a9 9 0 0 1-15.5 6.3L3 16M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>'),
   cal: SVG('<rect x="3" y="4" width="18" height="18" rx="1"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
 };
 function ri(k) { return ROLE[k] ? `<i class="ri" data-r="${k}" aria-hidden="true"></i>` : ""; }
@@ -107,7 +108,7 @@ const EXAMPLE = {
 
 /* ---------- State ---------- */
 const COLS = ["players", "comps", "scrims", "avail", "fearless", "scouting"];
-const VIEWS = ["roster", "team", "comps", "schedule", "fearless", "scouting"];
+const VIEWS = ["roster", "team", "comps", "draft", "schedule", "fearless", "scouting"];
 const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", pendingRender: false };
 const LS_KEY = "five-stack-board-v2";
 const ME_KEY = "fsb-me";
@@ -159,6 +160,7 @@ async function apiFetch(force) {
   apiVersion = j.version; COLS.forEach(c => { S[c] = j[c] || []; }); S.meta = j.meta || {};
   S.loaded = true; S.stale = false; S.error = "";
   render();
+  maybeAutoSync();
 }
 async function poll(force) {
   clearTimeout(pollTimer);
@@ -193,7 +195,7 @@ function openCodeSheet() {
       catch (e) { toast(t("Couldn't check the code. Check your connection and try again.")); return false; }
       if (r.status === 401) { toast(t("That team code isn't right.")); f.tcode.select(); return false; }
       if (!r.ok) { let j = null; try { j = await r.json(); } catch (e) {} toast((j && j.error) || t("Couldn't check the code. Try again in a moment.")); return false; }
-      setCode(code); S.readOnly = false; render(); toast(t("Editing unlocked")); return true;
+      setCode(code); S.readOnly = false; render(); toast(t("Editing unlocked")); setTimeout(maybeAutoSync, 500); return true;
     },
   });
 }
@@ -397,7 +399,7 @@ function render() {
   S.pendingRender = false;
   const hasEx = COLS.some(c => S[c].some(x => x.example));
   const exBanner = hasEx && !S.readOnly ? `<div class="notice"><span>${t("You're looking at <b>example data</b>. Add your own team, then clear the examples.")}</span><button class="btn small" data-act="clear-ex" type="button">${esc(t("Clear examples"))}</button></div>` : "";
-  const views = { roster: viewRoster, team: viewTeam, comps: viewComps, schedule: viewSchedule, fearless: viewFearless, scouting: viewScouting };
+  const views = { roster: viewRoster, team: viewTeam, comps: viewComps, draft: viewDraft, schedule: viewSchedule, fearless: viewFearless, scouting: viewScouting };
   v.innerHTML = (views[S.view] || viewRoster)() + exBanner;
   if (v.dataset.shown === S.view) v.classList.add("settled"); else { v.classList.remove("settled"); v.dataset.shown = S.view; }
 }
@@ -422,7 +424,8 @@ function lineupStrip() {
   }).join("")}</div>`;
 }
 function viewRoster() {
-  const top = pagehead(t("Roster"), t("Who plays what, how deep their pools go, and where they need cover."), S.readOnly ? "" : btn("add-player", t("Add player"), I.plus, "primary"));
+  const canSync = S.mode === "api" && !S.readOnly && S.players.some(p => p.ign);
+  const top = pagehead(t("Roster"), t("Who plays what, how deep their pools go, and where they need cover."), S.readOnly ? "" : (canSync ? btn("rank-sync", rankBusy ? t("Syncing ranks…") : t("Sync ranks"), I.sync, "", rankBusy ? " disabled" : "") : "") + btn("add-player", t("Add player"), I.plus, "primary"));
   if (!S.players.length) return top + viewEmptyRoster();
   const f = S.roleFilter;
   const plays = (p, k) => p.primaryRole === k || (p.secondaryRoles || []).includes(k);
@@ -444,16 +447,26 @@ function playerCard(p) {
     <div class="card-head">
       <span class="role-tile">${r ? ri(r.k) + r.code : "—"}</span>
       <div><h3>${esc(p.name || t("Unnamed"))}${p.ign ? `<span class="ign">${esc(p.ign)}</span>` : ""}</h3>
-        <div class="meta-line">${p.sub ? `<span class="subtag">${esc(t("Sub"))}</span>` : ""}${p.example ? `<span class="tag-ex">${esc(t("Example"))}</span>` : ""}${rk ? `<span class="rank" data-rk="${esc(String(p.rank || "").toLowerCase())}">${esc(rk)}</span>` : ""}${p.style ? `<span>${esc(t(p.style))}</span>` : ""}${secs.length ? `<span>${esc(t("Also {roles}", { roles: secs.join(", ") }))}</span>` : ""}</div>
+        <div class="meta-line">${p.sub ? `<span class="subtag">${esc(t("Sub"))}</span>` : ""}${p.example ? `<span class="tag-ex">${esc(t("Example"))}</span>` : ""}${p.ranked && p.ranked.solo ? `<span class="rank" data-rk="${esc(p.ranked.solo.tier.toLowerCase())}">${esc(t(cap1(p.ranked.solo.tier)) + (p.ranked.solo.division ? " " + p.ranked.solo.division : ""))}</span><span class="lp">${p.ranked.solo.lp} LP</span>` : rk ? `<span class="rank" data-rk="${esc(String(p.rank || "").toLowerCase())}">${esc(rk)}</span>` : ""}${p.style ? `<span>${esc(t(p.style))}</span>` : ""}${secs.length ? `<span>${esc(t("Also {roles}", { roles: secs.join(", ") }))}</span>` : ""}</div>
       </div>
+      ${S.mode === "api" && !S.readOnly && p.ign ? `<button class="iconbtn${rankBusy && (!S.rankBusyIds || S.rankBusyIds.includes(p.id)) ? " spin" : ""}" data-act="rank-one" data-id="${esc(p.id)}" type="button" aria-label="${esc(t("Sync rank for {name}", { name: p.name }))}" title="${esc(p.ranked && p.ranked.syncedAt ? t("Rank synced {when}", { when: ago(p.ranked.syncedAt) }) : t("Sync rank from Riot"))}"${rankBusy ? " disabled" : ""}>${I.sync}</button>` : ""}
       ${S.readOnly ? "" : `<button class="iconbtn" data-act="edit-player" data-id="${esc(p.id)}" type="button" aria-label="${esc(t("Edit {name}", { name: p.name }))}" title="${esc(t("Edit"))}">${I.edit}</button>`}
     </div>
     <div class="card-body">
+      ${rankedBlock(p)}
       <div class="pool" style="display:grid;gap:8px">${pool || `<span class="formhint">${esc(t("No champions added yet."))}</span>`}</div>
       <div class="sw"><div><span class="label">${esc(t("Strengths"))}</span><ul class="plus">${li(p.strengths)}</ul></div><div><span class="label">${esc(t("Weaknesses"))}</span><ul class="minus">${li(p.weaknesses)}</ul></div></div>
       ${p.notes ? `<p class="notes">${esc(p.notes)}</p>` : ""}
     </div>
   </article>`;
+}
+
+function rankedBlock(p) {
+  const r = p.ranked; if (!r) return "";
+  if (r.error === "not_found") return `<p class="rankrow warn">${esc(t("Riot ID {id} wasn't found on {server}. Check the spelling and the server in the player's settings.", { id: r.riotId || p.ign, server: (SERVERS.find(x => x[0] === r.platform) || [0, r.platform])[1] }))}</p>`;
+  const rows = [["Solo/Duo", r.solo], ["Flex", r.flex]].filter(x => x[1]);
+  if (!rows.length) return `<p class="rankrow"><span class="label">${esc(t("Ranked"))}</span><span class="hint">${esc(t("No ranked games this split"))}</span><span class="when">${esc(ago(r.syncedAt))}</span></p>`;
+  return `<div class="rankrow">${rows.map(([q, e]) => `<span class="q"><span class="label">${esc(t(q))}</span><span>${esc(queueLine(e))}</span>${e.hotStreak ? `<span class="streak">${esc(t("Win streak"))}</span>` : ""}</span>`).join("")}<span class="when">${esc(ago(r.syncedAt))}</span></div>`;
 }
 
 /* ---------- Team map ---------- */
@@ -750,6 +763,195 @@ async function saveScouting() {
   if (ok) { S.scoutDraft = null; render(); toast(t("Scouting notes saved")); }
 }
 
+/* ---------- Rank sync ---------- */
+const SERVERS = [["euw1", "EUW"], ["eun1", "EUNE"], ["na1", "NA"], ["kr", "KR"], ["br1", "BR"], ["la1", "LAN"], ["la2", "LAS"], ["oc1", "OCE"], ["tr1", "TR"], ["ru", "RU"], ["jp1", "JP"], ["me1", "ME"], ["sg2", "SG"], ["tw2", "TW"], ["vn2", "VN"], ["th2", "TH"], ["ph2", "PH"]];
+const RANK_STALE_MS = 6 * 3600e3;
+let rankBusy = false, rankAutoDone = false;
+function ago(iso) {
+  const ms = Date.now() - Date.parse(iso); if (!(ms >= 0)) return "";
+  const m = Math.round(ms / 60000);
+  if (m < 1) return t("just now");
+  if (m < 60) return t("{n} min ago", { n: m });
+  const h = Math.round(m / 60); if (h < 48) return t("{n} h ago", { n: h });
+  return t("{n} days ago", { n: Math.round(h / 24) });
+}
+function queueLine(q) {
+  if (!q) return "";
+  const games = q.wins + q.losses;
+  return `${t(cap1(q.tier))}${q.division ? " " + q.division : ""} · ${q.lp} LP · ${games ? Math.round(q.wins / games * 100) : 0}% ${t("of {n}", { n: games })}`;
+}
+function cap1(s) { s = String(s || ""); return s.charAt(0) + s.slice(1).toLowerCase(); }
+async function syncRanks(ids, opts) {
+  opts = opts || {};
+  if (rankBusy || S.mode !== "api" || S.readOnly) return;
+  rankBusy = true; S.rankBusyIds = ids || null; render();
+  try {
+    const r = await fetch("/api/rank", { method: "POST", headers: { "Content-Type": "application/json", "x-team-code": getCode() }, body: JSON.stringify({ ids: ids || [], force: !!opts.force }) });
+    let j = null; try { j = await r.json(); } catch (e) {}
+    if (r.status === 503 && j && j.code === "no_key") { S.rankOff = true; if (!opts.quiet) toast(t("Rank sync isn't set up yet. Add RIOT_API_KEY in Vercel.")); return; }
+    if (!r.ok) { if (!opts.quiet) toast((j && j.error) || t("Rank sync failed. Try again in a moment.")); return; }
+    S.rankOff = false;
+    const res = j.results || [];
+    const ok = res.filter(x => x.status === "ok").length, nf = res.filter(x => x.status === "not_found"), noid = res.filter(x => x.status === "no_riot_id");
+    await poll(true);
+    if (!opts.quiet || nf.length) {
+      const parts = [];
+      if (ok) parts.push(tn(ok, "Rank updated for {n} player", "Ranks updated for {n} players"));
+      if (nf.length) parts.push(t("Riot ID not found: {names}", { names: nf.map(x => x.name).join(", ") }));
+      if (noid.length && !opts.quiet) parts.push(t("No Riot ID: {names}", { names: noid.map(x => x.name).join(", ") }));
+      if (!res.length && !opts.quiet) parts.push(t("Ranks are already up to date."));
+      if (j.warning) parts.push(j.warning);
+      if (parts.length) toast(parts.join(" · "));
+    }
+  } catch (e) { if (!opts.quiet) toast(t("Rank sync failed. Try again in a moment.")); }
+  finally { rankBusy = false; S.rankBusyIds = null; render(); }
+}
+function maybeAutoSync() {
+  if (rankAutoDone || S.mode !== "api" || S.readOnly || S.rankOff) return;
+  rankAutoDone = true;
+  const stale = S.players.filter(p => p.ign && !p.example && (!p.ranked || !p.ranked.syncedAt || Date.now() - Date.parse(p.ranked.syncedAt) > RANK_STALE_MS || p.ranked.riotId !== p.ign));
+  if (stale.length) setTimeout(() => syncRanks(stale.map(p => p.id), { quiet: true }), 1500);
+}
+
+/* ---------- Draft simulator ---------- */
+// Tournament order: 3 bans each, 3 picks (B R R B B R), 2 bans each starting with red, 2 picks (R B B R)
+const DRAFT_ORDER = [
+  ["B", "ban"], ["R", "ban"], ["B", "ban"], ["R", "ban"], ["B", "ban"], ["R", "ban"],
+  ["B", "pick"], ["R", "pick"], ["R", "pick"], ["B", "pick"], ["B", "pick"], ["R", "pick"],
+  ["R", "ban"], ["B", "ban"], ["R", "ban"], ["B", "ban"],
+  ["R", "pick"], ["B", "pick"], ["B", "pick"], ["R", "pick"],
+];
+const DRAFT_KEY = "fsb-draft";
+function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); if (d && Array.isArray(d.seq)) return { side: "B", opp: "", seq: [], roles: {}, filter: "all", ...d }; } catch (e) {} return { side: "B", opp: "", seq: [], roles: {}, filter: "all" }; }
+function saveDraft() { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(S.draft)); } catch (e) {} }
+function draftParts() {
+  const d = S.draft, out = { B: { bans: [], picks: [] }, R: { bans: [], picks: [] } };
+  d.seq.forEach((c, i) => { const [side, kind] = DRAFT_ORDER[i]; out[side][kind === "ban" ? "bans" : "picks"].push(c); });
+  return out;
+}
+function draftUsed() { return new Set(S.draft.seq.filter(Boolean).map(c => c.toLowerCase())); }
+function poolEntries(champ) { const n = champName(champ).toLowerCase(); const out = []; S.players.forEach(p => (p.champions || []).forEach(c => { if (champName(c.champ).toLowerCase() === n && c.tier !== "learning") out.push({ p, c }); })); return out; }
+function starterFor(role) { return S.players.find(p => p.primaryRole === role && !p.sub) || S.players.find(p => p.primaryRole === role) || S.players.find(p => (p.secondaryRoles || []).includes(role)) || null; }
+// Our picks -> roles: manual choice first, then the role it sits in someone's pool, then whatever is left
+function assignRoles(picks) {
+  const map = {}, used = new Set();
+  picks.forEach(c => { const r = S.draft.roles[c]; if (r && !used.has(r)) { map[c] = r; used.add(r); } });
+  picks.forEach(c => { if (map[c]) return; const order = { main: 0, comfort: 1, pocket: 2 }; const cands = poolEntries(c).sort((a, b) => (a.p.sub ? 1 : 0) - (b.p.sub ? 1 : 0) || (order[a.c.tier] ?? 1) - (order[b.c.tier] ?? 1)).map(e => e.c.role); const r = cands.find(x => !used.has(x)); if (r) { map[c] = r; used.add(r); } });
+  picks.forEach(c => { if (map[c]) return; const r = ROLES.map(x => x.k).find(x => !used.has(x)); if (r) { map[c] = r; used.add(r); } });
+  return map;
+}
+function threats() { return mentionedChamps(scoutValues().powerPicks); }
+
+function viewDraft() {
+  if (!S.draft) S.draft = loadDraft();
+  const d = S.draft, step = d.seq.length, done = step >= DRAFT_ORDER.length;
+  const cur = done ? null : DRAFT_ORDER[step];
+  const us = d.side, them = us === "B" ? "R" : "B";
+  const parts = draftParts(), used = draftUsed(), fl = series(), th = threats();
+  const ourName = S.meta.teamName || t("Our Team"), oppName = d.opp || t("Opponent");
+  const sideName = (s) => s === us ? ourName : oppName;
+  const acts = `${btn("dr-undo", t("Undo"), "", "", step ? "" : " disabled")}${btn("dr-reset", t("Reset"), "", "", step ? "" : " disabled")}`;
+  const top = pagehead(t("Draft simulator"), t("Run a full tournament draft: 5 bans and 5 picks per side in the real order. Your pools, fearless locks and scouting threats are marked on every champion."), acts);
+
+  const phase = done ? `<div class="phase done"><b>${esc(t("Draft complete"))}</b></div>`
+    : `<div class="phase ${cur[0] === "B" ? "blue" : "red"}"><span class="label">${esc(t("Step {n} of {m}", { n: step + 1, m: DRAFT_ORDER.length }))}</span><b>${esc(t(cur[0] === "B" ? "Blue" : "Red"))} ${esc(t(cur[1] === "ban" ? "ban" : "pick"))} ${cur[1] === "ban" ? (cur[0] === "B" ? parts.B.bans.length + 1 : parts.R.bans.length + 1) : (cur[0] === "B" ? parts.B.picks.length + 1 : parts.R.picks.length + 1)}</b><span class="hint">${esc(cur[0] === us ? t("Your turn") : t("{team}'s turn", { team: oppName }))}</span>${cur[1] === "ban" ? btn("dr-skip", t("No ban"), "", "small ghost") : ""}</div>`;
+  const setup = `<div class="dr-setup"><div class="seg" role="group" aria-label="${esc(t("Our side"))}"><button type="button" data-act="dr-side" data-val="B" aria-pressed="${us === "B"}">${esc(t("We're blue"))}</button><button type="button" data-act="dr-side" data-val="R" aria-pressed="${us === "R"}">${esc(t("We're red"))}</button></div>
+    <label class="dr-opp"><span class="label">${esc(t("Opponent"))}</span><input id="drOpp" data-dr="opp" value="${esc(d.opp)}" placeholder="${esc(scoutValues().opponent || t("Team name"))}"></label>${phase}</div>`;
+
+  const roleMap = assignRoles(parts[us].picks.filter(Boolean));
+  const col = (s) => {
+    const bans = parts[s].bans, picks = parts[s].picks, isUs = s === us;
+    const banSlots = Array.from({ length: 5 }, (_, i) => { const c = bans[i]; const curHere = cur && cur[0] === s && cur[1] === "ban" && i === bans.length; return `<span class="bslot${curHere ? " now" : ""}${c === null ? " skipped" : ""}" title="${esc(c || "")}">${c ? champIcon(c, "md") : c === null ? "—" : ""}</span>`; }).join("");
+    const pickSlots = Array.from({ length: 5 }, (_, i) => {
+      const c = picks[i]; const curHere = cur && cur[0] === s && cur[1] === "pick" && i === picks.length;
+      if (!c) return `<div class="pslot${curHere ? " now" : ""}"><span class="empty-slot"></span><span class="hint">${curHere ? esc(t("Picking…")) : ""}</span></div>`;
+      let meta = "";
+      if (isUs) {
+        const role = roleMap[c], pl = role ? starterFor(role) : null;
+        meta = `<select class="dr-role" data-dr-role="${esc(c)}" aria-label="${esc(t("Role for {champ}", { champ: c }))}">${ROLES.map(r => opt(r.k, r.code, role === r.k)).join("")}</select><span class="hint">${pl ? esc(pl.name) : ""}</span>`;
+      } else if (th.includes(c)) meta = `<span class="flag bad">${esc(t("Power pick"))}</span>`;
+      return `<div class="pslot filled">${champIcon(c, "lg")}<div class="pmeta"><b>${esc(c)}</b>${meta}</div></div>`;
+    }).join("");
+    return `<section class="dr-col ${s === "B" ? "blue" : "red"}${isUs ? " us" : ""}"><header><span class="side-tag">${esc(t(s === "B" ? "Blue side" : "Red side"))}</span><b>${esc(sideName(s))}</b></header><div class="bans">${banSlots}</div><div class="picks-col">${pickSlots}</div></section>`;
+  };
+
+  // Champion pool grid
+  const f = d.filter || "all";
+  const inPool = new Map(); S.players.forEach(p => (p.champions || []).forEach(c => { if (c.tier === "learning") return; const n = champName(c.champ); if (!n) return; if (!inPool.has(n)) inPool.set(n, []); inPool.get(n).push({ p, c }); }));
+  let list = [...CHAMPS.values()].map(c => c.name);
+  if (f === "pool") list = list.filter(n => inPool.has(n));
+  else if (f === "threats") list = list.filter(n => th.includes(n));
+  else if (ROLE[f]) list = list.filter(n => (inPool.get(n) || []).some(e => e.c.role === f));
+  const tiles = list.map(n => {
+    const lk = lockedEntry(n), isUsed = used.has(n.toLowerCase()), entries = inPool.get(n) || [];
+    const dis = done || isUsed || !!lk;
+    const who = entries.map(e => `${e.p.name} (${ROLE[e.c.role]?.code || "?"})`).join(", ");
+    const title = isUsed ? t("Already picked or banned") : lk ? t("Used in game {g}", { g: lk.game }) : who ? t("In pool: {who}", { who }) : n;
+    return `<button class="dtile${entries.length ? " ours" : ""}${th.includes(n) ? " threat" : ""}${isUsed ? " used" : ""}${lk ? " locked" : ""}" type="button" data-act="dr-pick" data-champ="${esc(n)}" data-n="${esc(n.toLowerCase())}" title="${esc(title)}"${dis ? " disabled" : ""}>${champIcon(n, "dt")}<span>${esc(n)}</span>${lk ? `<small>G${lk.game}</small>` : ""}</button>`;
+  }).join("");
+  const fbtn = (k, label) => `<button class="fchip" type="button" data-act="dr-filter" data-val="${k}" aria-pressed="${f === k}">${label}</button>`;
+  const pool = `<section class="dr-pool"><div class="dr-tools"><input id="drSearch" type="search" data-dr-search="1" placeholder="${esc(t("Search champion"))}" autocomplete="off" aria-label="${esc(t("Search champion"))}">
+      <div class="filters">${fbtn("all", esc(t("All")))}${fbtn("pool", esc(t("Our pool")))}${ROLES.map(r => fbtn(r.k, ri(r.k) + r.code)).join("")}${th.length ? fbtn("threats", esc(t("Threats"))) : ""}</div></div>
+    <div class="dgrid" id="drGrid">${tiles || `<span class="formhint">${esc(t("No champions match this filter."))}</span>`}</div>
+    <div class="legend"><span><i class="lg-ours"></i>${esc(t("In our pool"))}</span><span><i class="lg-threat"></i>${esc(t("Scouted threat"))}</span>${fl.enabled ? `<span><i class="lg-locked"></i>${esc(t("Locked by fearless"))}</span>` : ""}</div></section>`;
+
+  // Our side: suggestions and read
+  const ourPicks = parts[us].picks.filter(Boolean);
+  const openRoles = ROLES.filter(r => !Object.values(roleMap).includes(r.k));
+  let sugg = "";
+  if (cur && cur[0] === us && cur[1] === "pick" && openRoles.length) {
+    sugg = `<div class="sugg"><span class="label">${esc(t("Comfort picks still open"))}</span>${openRoles.map(r => {
+      const pl = starterFor(r.k); if (!pl) return "";
+      const order = { main: 0, comfort: 1, pocket: 2 };
+      const cs = (pl.champions || []).filter(c => c.role === r.k && c.tier !== "learning" && !used.has(champName(c.champ).toLowerCase()) && !lockedEntry(c.champ)).sort((a, b) => (order[a.tier] ?? 1) - (order[b.tier] ?? 1)).slice(0, 4);
+      return `<div class="sugg-row"><span class="role">${ri(r.k)}${r.code}</span><span class="hint">${esc(pl.name)}</span><div class="chips">${cs.length ? cs.map(c => `<button class="chip ${esc(c.tier)}" type="button" data-act="dr-pick" data-champ="${esc(champName(c.champ))}">${champIcon(c.champ)}${esc(champName(c.champ))}</button>`).join("") : `<span class="flag bad">${esc(t("Nothing left"))}</span>`}</div></div>`;
+    }).join("")}</div>`;
+  } else if (cur && cur[0] === us && cur[1] === "ban") {
+    const left = th.filter(n => !used.has(n.toLowerCase()) && !lockedEntry(n));
+    if (left.length) sugg = `<div class="sugg"><span class="label">${esc(t("Ban suggestions from scouting"))}</span><div class="chips">${left.slice(0, 6).map(n => `<button class="chip" type="button" data-act="dr-pick" data-champ="${esc(n)}">${champIcon(n)}${esc(n)}</button>`).join("")}</div></div>`;
+  }
+  let read = "";
+  if (ourPicks.length) {
+    const comp = { picks: {} };
+    ourPicks.forEach(c => { const r = roleMap[c]; if (r) comp.picks[r] = { champ: c, playerId: starterFor(r)?.id || "" }; });
+    const st = compStats(comp), tot = st.total || 1;
+    const notes = ROLES.map(r => { const pp = st.perPick[r.k]; return pp && pp.note && pp.note.cls !== "good" && comp.picks[r.k] ? `<span class="flag ${pp.note.cls}">${esc(comp.picks[r.k].champ)}: ${esc(pp.note.text)}</span>` : ""; }).join("");
+    read = `<div class="dr-read"><span class="label">${esc(t("Our comp so far"))}</span><div class="dbar"><span class="ad" style="width:${(st.ad / tot * 100).toFixed(1)}%"></span><span class="ap" style="width:${(st.ap / tot * 100).toFixed(1)}%"></span></div>
+      <div class="dlegend"><span class="a"><b>${Math.round(st.ad / tot * 100)}%</b> AD</span><span class="p"><b>${Math.round(st.ap / tot * 100)}%</b> AP</span><span><b>${st.front}</b> ${esc(t("frontline"))}</span></div>
+      <div class="flags">${notes}${st.flags.filter(x => !/open$|offen$/.test(x.text)).map(x => `<span class="flag ${x.cls}">${esc(x.text)}</span>`).join("")}</div></div>`;
+  }
+  const finish = ourPicks.length && !S.readOnly ? `<div class="dr-finish">${btn("dr-save-comp", t("Save our picks as a comp"), I.plus)}${btn("dr-lock", fl.enabled ? t("Lock picks for fearless game {g}", { g: fl.game }) : t("Start fearless series with these picks"), I.lock, done ? "primary" : "")}</div>` : "";
+  const side = `<section class="panel dr-side">${sugg}${read || `<p class="hint">${esc(t("Your team's damage split and warnings appear here once you pick."))}</p>`}${finish}</section>`;
+
+  return top + setup + `<div class="draft">${col("B")}${pool}${col("R")}</div>` + side;
+}
+function draftPick(champ) {
+  const d = S.draft; if (d.seq.length >= DRAFT_ORDER.length) return;
+  const n = champName(champ);
+  if (champ !== null && (draftUsed().has(n.toLowerCase()) || lockedEntry(n))) return;
+  d.seq.push(champ === null ? null : n); saveDraft();
+  const el = document.getElementById("drSearch"); if (el) { el.value = ""; el.blur(); }
+  render();
+}
+async function draftSaveComp() {
+  const d = S.draft, parts = draftParts(), us = d.side, them = us === "B" ? "R" : "B";
+  const ours = parts[us].picks.filter(Boolean), map = assignRoles(ours);
+  const picks = {}; ours.forEach(c => { const r = map[c]; if (r) picks[r] = { champ: c, playerId: starterFor(r)?.id || "" }; });
+  const name = d.opp ? t("Draft vs {team}", { team: d.opp }) : t("Draft {date}", { date: fmt(new Date()) });
+  const ok = await writeDoc("comps", uid("c-"), { name, archetype: "", picks, winCondition: "", weakAgainst: parts[them].picks.filter(Boolean).length ? t("Their picks: {list}", { list: parts[them].picks.filter(Boolean).join(", ") }) : "", bans: parts[us].bans.filter(Boolean).join(", "), notes: "" });
+  if (ok) toast(t("Saved as \"{name}\" on the Comps tab", { name }));
+}
+async function draftLockFearless() {
+  const d = S.draft, parts = draftParts(), us = d.side, them = us === "B" ? "R" : "B";
+  const sr = series(); const have = new Set(sr.locked.map(l => champName(l.champ).toLowerCase()));
+  const add = [];
+  parts[us].picks.filter(Boolean).forEach(c => { if (!have.has(c.toLowerCase())) add.push({ champ: c, game: sr.game, side: "us" }); });
+  parts[them].picks.filter(Boolean).forEach(c => { if (!have.has(c.toLowerCase())) add.push({ champ: c, game: sr.game, side: "them" }); });
+  const nextGame = Math.min(3, sr.game + 1);
+  const ok = await saveSeries({ enabled: true, locked: [...sr.locked, ...add], game: sr.enabled ? nextGame : 2 });
+  if (ok) { const g = sr.enabled ? sr.game : 1; d.seq = []; d.roles = {}; saveDraft(); render(); toast(t("Game {g} picks locked. The board is ready for the next game.", { g })); }
+}
+
 /* ---------- Editor drawer ---------- */
 const overlay = document.getElementById("overlay");
 let lastFocus = null;
@@ -793,7 +995,9 @@ function editPlayer(id) {
   const body = `
   <fieldset><legend>${esc(t("Player"))}</legend>
     <div class="frow"><label class="f"><span>${esc(t("Name"))}</span><input id="pName" name="name" required value="${esc(d.name || "")}" placeholder="${esc(t("What the team calls them"))}"></label>
-    <label class="f"><span>Riot ID</span><input id="pIgn" name="ign" value="${esc(d.ign || "")}" placeholder="Name#TAG"></label></div>
+    <label class="f"><span>Riot ID</span><input id="pIgn" name="ign" value="${esc(d.ign || "")}" placeholder="Name#TAG"></label>
+    <label class="f"><span>${esc(t("Server"))}</span><select id="pServer" name="server">${SERVERS.map(([k, n]) => opt(k, n, (d.server || "euw1") === k)).join("")}</select></label></div>
+    ${S.mode === "api" ? `<p class="formhint">${esc(t("With a Riot ID, rank and LP are synced from Riot automatically."))}</p>` : ""}
     <div class="frow"><label class="f"><span>${esc(t("Rank"))}</span><select id="pRank" name="rank">${opt("", "—", !d.rank)}${RANKS.map(r => opt(r, t(r), d.rank === r)).join("")}</select></label>
     <label class="f"><span>${esc(t("Division"))}</span><select id="pDiv" name="div">${opt("", "—", !d.div)}${DIVS.map(x => opt(x, x, d.div === x)).join("")}</select></label>
     <label class="f"><span>${esc(t("Playstyle"))}</span><select id="pStyle" name="style">${opt("", "—", !d.style)}${STYLES.map(s => opt(s, t(s), d.style === s)).join("")}</select></label>
@@ -823,12 +1027,14 @@ function editPlayer(id) {
       if (!name) { toast(t("Give the player a name before saving.")); f.name.focus(); return false; }
       const champs = [];
       f.querySelectorAll(".crow").forEach(row => { const champ = champName(row.querySelector('[name="cChamp"]').value); if (champ) champs.push({ champ, role: row.querySelector('[name="cRole"]').value, tier: row.querySelector('[name="cTier"]').value }); });
-      const data = { name, ign: f.ign.value.trim(), rank: f.rank.value, div: f.div.value, style: f.style.value, sub: f.spot.value === "sub", primaryRole: f.primaryRole.value,
+      const data = { name, ign: f.ign.value.trim(), server: f.server.value, ranked: p && p.ranked ? p.ranked : undefined, rank: f.rank.value, div: f.div.value, style: f.style.value, sub: f.spot.value === "sub", primaryRole: f.primaryRole.value,
         secondaryRoles: [...f.querySelectorAll('[name="sec"]:checked')].map(x => x.value).filter(k => k !== f.primaryRole.value),
         champions: champs, strengths: lines(f.strengths.value), weaknesses: lines(f.weaknesses.value), notes: f.notes.value.trim() };
       if (p && p.example) data.example = true;
-      const ok = await writeDoc("players", p ? p.id : uid("p-"), data);
+      const pid = p ? p.id : uid("p-");
+      const ok = await writeDoc("players", pid, data);
       if (ok) toast(p ? t("Player saved") : t("{name} added", { name }));
+      if (ok && data.ign && S.mode === "api" && !S.rankOff && (!p || p.ign !== data.ign || p.server !== data.server)) setTimeout(() => syncRanks([pid], { quiet: true }), 400);
       return ok;
     },
     onDelete: p ? async () => { const ok = await deleteDoc("players", p.id); if (ok) toast(t("{name} removed", { name: p.name })); return ok; } : null,
@@ -918,6 +1124,16 @@ document.addEventListener("click", (e) => {
   if (act === "add-scrim") return editScrim(null, el.dataset.date);
   if (act === "edit-scrim") return editScrim(el.dataset.id);
   if (act === "copy-week") return copyText(weekSummary());
+  if (act === "rank-sync") return syncRanks(null, { force: true });
+  if (act === "rank-one") return syncRanks([el.dataset.id], { force: true });
+  if (act === "dr-pick") return draftPick(el.dataset.champ);
+  if (act === "dr-skip") return draftPick(null);
+  if (act === "dr-undo") { S.draft.seq.pop(); saveDraft(); render(); return; }
+  if (act === "dr-reset") { if (el.dataset.confirm !== "1") { el.dataset.confirm = "1"; el.textContent = t("Click again to reset"); setTimeout(() => { if (el.isConnected) { el.dataset.confirm = ""; el.textContent = t("Reset"); } }, 4000); return; } S.draft.seq = []; S.draft.roles = {}; saveDraft(); render(); return; }
+  if (act === "dr-side") { S.draft.side = el.dataset.val; saveDraft(); render(); return; }
+  if (act === "dr-filter") { S.draft.filter = el.dataset.val; saveDraft(); render(); return; }
+  if (act === "dr-save-comp") return draftSaveComp();
+  if (act === "dr-lock") return draftLockFearless();
   if (act === "ics") return downloadIcs();
   if (act === "fl-toggle") { const sr = series(); saveSeries({ enabled: !sr.enabled }); toast(sr.enabled ? t("Fearless draft off") : t("Fearless draft on, game {g}", { g: sr.game })); return; }
   if (act === "fl-game") { saveSeries({ game: Number(el.dataset.val) }); return; }
@@ -946,7 +1162,11 @@ document.addEventListener("click", (e) => {
 });
 document.getElementById("renameBtn").addEventListener("click", renameTeam);
 document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
-document.addEventListener("change", (e) => { if (e.target.dataset && e.target.dataset.me) { setMe(e.target.value); e.target.blur(); render(); } });
+document.addEventListener("change", (e) => {
+  const ds = e.target.dataset || {};
+  if (ds.me) { setMe(e.target.value); e.target.blur(); render(); }
+  if (ds.drRole) { S.draft.roles[ds.drRole] = e.target.value; Object.keys(S.draft.roles).forEach(k => { if (k !== ds.drRole && S.draft.roles[k] === e.target.value) delete S.draft.roles[k]; }); saveDraft(); e.target.blur(); render(); }
+});
 document.addEventListener("submit", (e) => {
   if (e.target.id !== "flAdd") return;
   e.preventDefault();
@@ -958,7 +1178,10 @@ document.addEventListener("submit", (e) => {
   saveSeries({ locked: [...sr.locked, { champ: info.name, game: sr.game, side: e.target.flside.value }] }).then(ok => { if (ok) toast(t("{champ} locked for game {g}", { champ: info.name, g: sr.game })); });
 });
 document.addEventListener("input", (e) => {
-  const k = e.target.dataset && e.target.dataset.scout;
+  const ds = e.target.dataset || {};
+  if (ds.drSearch) { const q = e.target.value.trim().toLowerCase(); document.querySelectorAll("#drGrid .dtile").forEach(b => { b.hidden = !!q && !b.dataset.n.includes(q); }); return; }
+  if (ds.dr === "opp") { S.draft.opp = e.target.value; saveDraft(); return; }
+  const k = ds.scout;
   if (!k) return;
   S.scoutDraft = { ...(S.scoutDraft || {}), [k]: e.target.value };
   const sb = document.querySelector(".savebar");
@@ -971,6 +1194,7 @@ document.addEventListener("input", (e) => {
 document.getElementById("view").addEventListener("focusout", () => setTimeout(() => { if (S.pendingRender) render(); }, 0));
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && overlay.innerHTML) closeSheet();
+  if (e.key === "Enter" && e.target.dataset && e.target.dataset.drSearch) { e.preventDefault(); const first = [...document.querySelectorAll("#drGrid .dtile")].find(b => !b.hidden && !b.disabled); if (first) draftPick(first.dataset.champ); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s" && S.view === "scouting" && !S.readOnly && !overlay.innerHTML) { e.preventDefault(); saveScouting(); }
 });
 window.addEventListener("beforeunload", (e) => { if (S.scoutDraft && document.querySelector(".unsaved")) { e.preventDefault(); e.returnValue = ""; } });
