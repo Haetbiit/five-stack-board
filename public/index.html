@@ -593,7 +593,7 @@ async function poll(force) {
   clearTimeout(pollTimer);
   try { await apiFetch(force); if (S.stale) { S.stale = false; render(); } }
   catch (e) { S.stale = true; render(); }
-  if (!document.hidden && !S.error) pollTimer = setTimeout(poll, 4000);
+  if (!document.hidden && !S.error) pollTimer = setTimeout(poll, 5000);
 }
 function startApi() {
   S.mode = "api"; S.readOnly = !getCode();
