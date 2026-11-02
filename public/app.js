@@ -71,6 +71,11 @@ const WEAK_TAGS = ["Overextends", "Low vision score", "Tilts easily", "Weak vs. 
 const CHAMP_RAW = "Aatrox:P;Ahri:M;Akali:M;Akshan:P;Alistar:MT;Ambessa:P;Amumu:MT;Anivia:M;Annie:M;Aphelios:P;Ashe:P;Aurelion Sol:M;Aurora:M;Azir:M;Bard:M;Bel'Veth:P;Blitzcrank:MT;Brand:M;Braum:MT;Briar:P;Caitlyn:P;Camille:P;Cassiopeia:M;Cho'Gath:MT;Corki:X;Darius:P;Diana:M;Dr. Mundo:XT;Draven:P;Ekko:M;Elise:M;Evelynn:M;Ezreal:P;Fiddlesticks:M;Fiora:P;Fizz:M;Galio:MT;Gangplank:P;Garen:P;Gnar:PT;Gragas:MT;Graves:P;Gwen:M;Hecarim:P;Heimerdinger:M;Hwei:M;Illaoi:P;Irelia:P;Ivern:M;Janna:M;Jarvan IV:PT;Jax:X;Jayce:P;Jhin:P;Jinx:P;K'Sante:PT;Kai'Sa:X;Kalista:P;Karma:M;Karthus:M;Kassadin:M;Katarina:X;Kayle:X;Kayn:P;Kennen:M;Kha'Zix:P;Kindred:P;Kled:P;Kog'Maw:X;LeBlanc:M;Lee Sin:P;Leona:MT;Lillia:M;Lissandra:M;Lucian:P;Lulu:M;Lux:M;Malphite:MT;Malzahar:M;Maokai:MT;Master Yi:P;Mel:M;Milio:M;Miss Fortune:P;Mordekaiser:M;Morgana:M;Naafiri:P;Nami:M;Nasus:P;Nautilus:MT;Neeko:M;Nidalee:M;Nilah:P;Nocturne:P;Nunu & Willump:MT;Olaf:P;Orianna:M;Ornn:XT;Pantheon:P;Poppy:PT;Pyke:P;Qiyana:P;Quinn:P;Rakan:M;Rammus:MT;Rek'Sai:P;Rell:MT;Renata Glasc:M;Renekton:P;Rengar:P;Riven:P;Rumble:M;Ryze:M;Samira:P;Sejuani:MT;Senna:P;Seraphine:M;Sett:PT;Shaco:X;Shen:XT;Shyvana:X;Singed:MT;Sion:PT;Sivir:P;Skarner:PT;Smolder:P;Sona:M;Soraka:M;Swain:M;Sylas:M;Syndra:M;Tahm Kench:MT;Taliyah:M;Talon:P;Taric:MT;Teemo:M;Thresh:MT;Tristana:P;Trundle:PT;Tryndamere:P;Twisted Fate:M;Twitch:P;Udyr:XT;Urgot:P;Varus:P;Vayne:P;Veigar:M;Vel'Koz:M;Vex:M;Vi:P;Viego:P;Viktor:M;Vladimir:M;Volibear:XT;Warwick:X;Wukong:P;Xayah:P;Xerath:M;Xin Zhao:P;Yasuo:P;Yone:P;Yorick:P;Yunara:P;Yuumi:M;Zac:MT;Zed:P;Zeri:P;Ziggs:M;Zilean:M;Zoe:M;Zyra:M";
 const CHAMPS = new Map();
 CHAMP_RAW.split(";").forEach(e => { const [n, c] = e.split(":"); CHAMPS.set(n.toLowerCase(), { name: n, d: c[0], t: c.includes("T") }); });
+// Loose lookup: "kaisa", "KhaZix", "dr mundo" and common nicknames all resolve to the real champion
+const champKey = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "");
+const CHAMP_KEYS = new Map([...CHAMPS.values()].map(c => [champKey(c.name), c]));
+const CHAMP_ALIAS = { mf: "Miss Fortune", tf: "Twisted Fate", j4: "Jarvan IV", jarvan: "Jarvan IV", mundo: "Dr. Mundo", nunu: "Nunu & Willump", asol: "Aurelion Sol", monkeyking: "Wukong", wu: "Wukong", yi: "Master Yi", lee: "Lee Sin",xin: "Xin Zhao", tk: "Tahm Kench", tahm: "Tahm Kench", renata: "Renata Glasc", gp: "Gangplank", ww: "Warwick", kog: "Kog'Maw", cho: "Cho'Gath", vel: "Vel'Koz", rek: "Rek'Sai", bel: "Bel'Veth", ks: "K'Sante", kha: "Kha'Zix", khazik: "Kha'Zix", kaissa: "Kai'Sa", lb: "LeBlanc", cass: "Cassiopeia", heimer: "Heimerdinger", fiddle: "Fiddlesticks", kass: "Kassadin", kat: "Katarina", morde: "Mordekaiser", naut: "Nautilus", ori: "Orianna", sej: "Sejuani", trist: "Tristana", trynd: "Tryndamere", ez: "Ezreal", voli: "Volibear", blitz: "Blitzcrank", malph: "Malphite", malz: "Malzahar", vlad: "Vladimir", panth: "Pantheon", noc: "Nocturne", hec: "Hecarim", sera: "Seraphine", liss: "Lissandra", cait: "Caitlyn", aph: "Aphelios", eve: "Evelynn", xer: "Xerath", zil: "Zilean", gang: "Gangplank", aurelion: "Aurelion Sol", twisted: "Twisted Fate", miss: "Miss Fortune", master: "Master Yi" };
+for (const a in CHAMP_ALIAS) CHAMP_KEYS.set(a, CHAMPS.get(CHAMP_ALIAS[a].toLowerCase()));
 const DMG_LABEL = { P: "AD", M: "AP", X: "Mixed" };
 document.getElementById("champList").innerHTML = [...CHAMPS.values()].map(c => `<option value="${esc(c.name)}"></option>`).join("");
 
@@ -115,7 +120,15 @@ const ME_KEY = "fsb-me";
 
 function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 function uid(prefix) { return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-function champInfo(name) { return name ? CHAMPS.get(String(name).trim().toLowerCase()) : null; }
+function champInfo(name) {
+  if (!name) return null;
+  const exact = CHAMPS.get(String(name).trim().toLowerCase()); if (exact) return exact;
+  const k = champKey(name); if (!k) return null;
+  if (CHAMP_KEYS.has(k)) return CHAMP_KEYS.get(k);
+  if (k.length < 3) return null;
+  const hits = [...CHAMPS.values()].filter(c => champKey(c.name).startsWith(k));
+  return hits.length === 1 ? hits[0] : null;
+}
 function champName(name) { const c = champInfo(name); return c ? c.name : String(name || "").trim(); }
 let ICONS = {};
 function initials(name) { const w = String(name || "").split(/[^A-Za-z0-9]+/).filter(Boolean); if (!w.length) return "?"; return (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)).toUpperCase(); }
