@@ -119,7 +119,7 @@ const EXAMPLE = {
 
 /* ---------- State ---------- */
 const COLS = ["players", "comps", "scrims", "avail", "fearless", "scouting", "counters"];
-const VIEWS = ["roster", "team", "comps", "draft", "schedule", "stats", "fearless", "scouting"];
+const VIEWS = ["roster", "team", "comps", "draft", "fearless", "scouting", "schedule", "stats"];
 const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], counters: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", pendingRender: false };
 const LS_KEY = "five-stack-board-v2";
 const ME_KEY = "fsb-me";
@@ -235,7 +235,7 @@ async function deleteDoc(col, id) {
 }
 async function saveMeta(meta) {
   S.meta = { ...S.meta, ...meta };
-  if (S.mode === "api") { if (!(await apiWrite({ action: "meta", data: { teamName: S.meta.teamName } }))) return false; }
+  if (S.mode === "api") { if (!(await apiWrite({ action: "meta", data: { teamName: S.meta.teamName, logo: S.meta.logo || "" } }))) return false; }
   else localPersist();
   renderHeader(); return true;
 }
@@ -455,6 +455,7 @@ function exampleBoard() {
 /* ---------- Header ---------- */
 function renderHeader() {
   document.getElementById("teamName").textContent = S.meta.teamName || t("Our Team");
+  showLogo(S.meta.logo);
   document.getElementById("renameBtn").hidden = S.readOnly;
   const st = document.getElementById("status"), tx = document.getElementById("statusText");
   st.className = "status";
@@ -1382,10 +1383,59 @@ function editComp(id) {
   form.archetype.addEventListener("change", () => { document.getElementById("archHint").textContent = t(ARCH[form.archetype.value]?.hint || ""); });
   ROLES.forEach(r => form["pl_" + r.k].addEventListener("change", (e) => { e.target.closest(".prow-wrap").querySelector(".sugs").innerHTML = sugChips(e.target.value, r.k); }));
 }
-function renameTeam() {
-  openSheet(t("Rename team"), `<label class="f"><span>${esc(t("Team name"))}</span><input id="tName" name="tname" value="${esc(S.meta.teamName || "")}" placeholder="${esc(t("Our Team"))}" maxlength="40"></label>`, {
-    onSubmit: async (f) => { const ok = await saveMeta({ teamName: f.tname.value.trim() }); if (ok) toast(t("Team renamed")); return ok; },
+/* ---------- Team profile ---------- */
+const LOGO_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+const markEl = document.querySelector(".brand .mark"), iconEl = document.querySelector('link[rel="icon"]');
+const DEFAULT_MARK = markEl.innerHTML, DEFAULT_ICON = iconEl ? iconEl.href : "";
+// The logo replaces the header mark and the browser-tab icon; without one the board's own mark stays
+function showLogo(logo) {
+  const ok = LOGO_RE.test(String(logo || "")) ? logo : "";
+  if (markEl.dataset.logo === ok) return;
+  markEl.dataset.logo = ok;
+  markEl.classList.toggle("has-logo", !!ok);
+  markEl.innerHTML = ok ? `<img src="${esc(ok)}" alt="">` : DEFAULT_MARK;
+  if (iconEl) iconEl.href = ok || DEFAULT_ICON;
+}
+// Crops the picture to a square and shrinks it to 160px, so it stays small enough to share with the team
+function readLogo(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !/^image\//.test(file.type)) return reject(new Error("type"));
+    if (file.size > 10e6) return reject(new Error("size"));
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.naturalWidth, img.naturalHeight), size = Math.min(160, side);
+      const c = document.createElement("canvas"); c.width = c.height = size;
+      c.getContext("2d").drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      let out = c.toDataURL("image/webp", 0.88);
+      if (!out.startsWith("data:image/webp")) out = c.toDataURL("image/png");
+      resolve(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode")); };
+    img.src = url;
   });
+}
+function renameTeam() {
+  let logo = S.meta.logo || "";
+  const preview = () => logo ? `<img src="${esc(logo)}" alt="">` : DEFAULT_MARK;
+  openSheet(t("Team profile"), `<label class="f"><span>${esc(t("Team name"))}</span><input id="tName" name="tname" value="${esc(S.meta.teamName || "")}" placeholder="${esc(t("Our Team"))}" maxlength="40"></label>
+    <div class="f"><span>${esc(t("Team logo"))}</span><div class="logo-row"><span class="logo-prev" id="logoPrev">${preview()}</span>
+      <div class="logo-actions"><label class="btn small">${I.plus}<span id="logoPick">${esc(logo ? t("Change logo") : t("Upload logo"))}</span><input id="tLogo" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="sr"></label>
+      <button class="btn small ghost" type="button" id="logoClear"${logo ? "" : " hidden"}>${esc(t("Remove logo"))}</button></div></div>
+      <p class="formhint">${esc(t("A square image works best. It's cropped to a square and shrunk, then shown in the header and the browser tab for everyone."))}</p></div>`, {
+    onSubmit: async (f) => {
+      const ok = await saveMeta({ teamName: f.tname.value.trim(), logo });
+      if (ok) toast(t("Team profile saved"));
+      return ok;
+    },
+  });
+  const sync = () => { document.getElementById("logoPrev").innerHTML = preview(); document.getElementById("logoPick").textContent = logo ? t("Change logo") : t("Upload logo"); document.getElementById("logoClear").hidden = !logo; };
+  document.getElementById("tLogo").addEventListener("change", async (e) => {
+    try { logo = await readLogo(e.target.files[0]); sync(); }
+    catch (err) { toast(err.message === "size" ? t("That image is too large. Pick one under 10 MB.") : t("That file isn't an image the browser can read. Try a PNG or JPG.")); }
+    e.target.value = "";
+  });
+  document.getElementById("logoClear").addEventListener("click", () => { logo = ""; sync(); });
 }
 
 /* ---------- Events ---------- */

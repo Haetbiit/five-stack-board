@@ -222,7 +222,7 @@ button.chip.locked:hover { border-color: var(--line-2); color: var(--muted); }
 .sw li::before { position: absolute; left: 0; font-weight: 700; }
 .sw .plus li::before { content: "+"; color: var(--good); }
 .sw .minus li::before { content: "–"; color: var(--red); }
-.sw .none { color: var(--faint); padding-left: 0; } .sw .none::before { content: none; }
+.sw .none { color: var(--faint); padding-left: 0; } .sw ul li.none::before { content: none; }
 .notes { margin: 0; font-size: 14px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; border-left: 2px solid var(--line-2); padding-left: 10px; }
 
 /* ---------- Team map ---------- */
@@ -666,3 +666,13 @@ button.gchip.suggest:hover { background: var(--good-soft); }
   .sugg-row.ans { grid-template-columns: minmax(0, 1fr) auto; } .sugg-row.ans .chips { grid-column: 1 / -1; grid-row: 2; }
   .srec { grid-template-columns: 48px 36px 48px; }
 }
+
+/* Team logo */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mark.has-logo img, .logo-prev img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: var(--r); }
+.logo-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.logo-prev { width: 64px; height: 64px; flex: none; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--panel-2); color: var(--fg); }
+.logo-prev svg { width: 40px; height: 40px; }
+.logo-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.logo-actions label.btn { cursor: pointer; }
+.logo-actions label.btn:focus-within { outline: 2px solid var(--blue); outline-offset: 2px; }

@@ -564,4 +564,15 @@ window.FSB_DE = {
   "Answers to {champ} saved": "Antworten auf {champ} gespeichert",
   "Answers to {champ} removed": "Antworten auf {champ} entfernt",
   "Remove our answers": "Unsere Antworten entfernen",
+
+  // Team profile
+  "Team profile": "Teamprofil",
+  "Team logo": "Teamlogo",
+  "Upload logo": "Logo hochladen",
+  "Change logo": "Logo ändern",
+  "Remove logo": "Logo entfernen",
+  "A square image works best. It's cropped to a square and shrunk, then shown in the header and the browser tab for everyone.": "Ein quadratisches Bild passt am besten. Es wird quadratisch zugeschnitten, verkleinert und für alle im Header und im Browser-Tab angezeigt.",
+  "Team profile saved": "Teamprofil gespeichert",
+  "That image is too large. Pick one under 10 MB.": "Das Bild ist zu groß. Wähle eins unter 10 MB.",
+  "That file isn't an image the browser can read. Try a PNG or JPG.": "Diese Datei ist kein Bild, das der Browser lesen kann. Versuch es mit PNG oder JPG.",
 };

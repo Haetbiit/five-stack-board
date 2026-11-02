@@ -6,6 +6,7 @@ import { redis, codeMatches, KEY, TEAM_CODE, storeConfigured, resetConnection } 
 // Collection -> max number of entries
 const COLLECTIONS = { players: 50, comps: 200, scrims: 1000, avail: 20000, fearless: 5, scouting: 20, counters: 300 };
 const MAX_DOC_BYTES = 20000;
+const MAX_LOGO_CHARS = 120000;
 const MAX_BATCH = 100;
 const AVAIL_KEEP_DAYS = 70;
 
@@ -52,7 +53,10 @@ export default async function handler(req, res) {
 
       if (action === "meta") {
         const teamName = String((data && data.teamName) || "").trim().slice(0, 40);
-        await redis([["SET", KEY + "meta", JSON.stringify({ teamName })], ["INCR", KEY + "version"]]);
+        // Team logo: a small image the page has already resized, sent as a data URL
+        const logo = String((data && data.logo) || "");
+        if (logo && (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(logo) || logo.length > MAX_LOGO_CHARS)) return res.status(400).json({ error: "That logo can't be used. Pick a PNG, JPG or WebP image." });
+        await redis([["SET", KEY + "meta", JSON.stringify(logo ? { teamName, logo } : { teamName })], ["INCR", KEY + "version"]]);
         return res.status(200).json({ ok: true });
       }
 
