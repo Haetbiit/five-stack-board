@@ -10,6 +10,7 @@ globalThis.fetch = async (url, opts) => {
   let m;
   if ((m = u.match(/by-riot-id\/([^/]+)\/([^/?]+)/))) { const n = decodeURIComponent(m[1]); return n === "Vane" ? j({ status: { status_code: 404 } }, 404) : j({ puuid: "puuid-" + n, gameName: n, tagLine: m[2] }); }
   if ((m = u.match(/entries\/by-puuid\/puuid-([^/?]+)/))) { const n = decodeURIComponent(m[1]); return j(n === "Juno" ? [] : [{ queueType: "RANKED_SOLO_5x5", tier: n === "Moss" ? "MASTER" : "EMERALD", rank: "II", leaguePoints: 54, wins: 70, losses: 50, hotStreak: n === "Rook" }, { queueType: "RANKED_FLEX_SR", tier: "GOLD", rank: "I", leaguePoints: 12, wins: 9, losses: 6 }]); }
+  if ((m = u.match(/summoners\/by-puuid\/puuid-([^/?]+)/))) return j({ profileIconId: 5000 + decodeURIComponent(m[1]).length, summonerLevel: 300 + decodeURIComponent(m[1]).length * 7 });
   return j({}, 404);
 };
 const mods = {};

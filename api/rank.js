@@ -45,9 +45,12 @@ async function syncOne(p) {
     puuid = acc.puuid;
   }
   const entries = (await riot(platform, `/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`)) || [];
+  // Profile icon and level; a failure here shouldn't lose the rank
+  let summ = null;
+  try { summ = await riot(platform, `/lol/summoner/v4/summoners/by-puuid/${encodeURIComponent(puuid)}`); } catch (e) { if (e instanceof RiotError && (e.status === 401 || e.status === 403 || e.status === 429)) throw e; }
   const solo = entries.find((e) => e.queueType === "RANKED_SOLO_5x5");
   const flex = entries.find((e) => e.queueType === "RANKED_FLEX_SR");
-  return { status: "ok", ranked: { puuid, riotId: p.ign, platform, solo: entryOut(solo), flex: entryOut(flex), error: null, syncedAt: new Date().toISOString() } };
+  return { status: "ok", ranked: { puuid, riotId: p.ign, platform, solo: entryOut(solo), flex: entryOut(flex), icon: summ ? summ.profileIconId : (old.icon ?? null), level: summ ? summ.summonerLevel : (old.level ?? null), error: null, syncedAt: new Date().toISOString() } };
 }
 
 export default async function handler(req, res) {

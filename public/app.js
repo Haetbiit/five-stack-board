@@ -419,7 +419,7 @@ function lineupStrip() {
     const subs = ps.filter(p => !mains.includes(p) && (p.primaryRole === r.k || (p.secondaryRoles || []).includes(r.k)));
     const state = !mains.length ? ["bad", t("Open")] : subs.length ? ["", t("Covered")] : ["warn", t("No backup")];
     return `<div class="slot${mains.length ? "" : " open"}"><div class="slot-top"><span class="role">${ri(r.k)}${r.code}</span><span class="state ${state[0]}">${esc(state[1])}</span></div>
-      <div class="who">${mains.length ? esc(mains.map(m => m.name).join(" / ")) : "—"}</div>
+      <div class="who">${mains.length === 1 && mains[0].ranked && mains[0].ranked.solo ? emblem(mains[0].ranked.solo.tier, "sm") : ""}${mains.length ? esc(mains.map(m => m.name).join(" / ")) : "—"}</div>
       <div class="meta">${subs.length ? esc(t(mains.length ? "Backup: {names}" : "Can fill: {names}", { names: subs.map(s => s.name).join(", ") })) : esc(mains.length ? t("Nobody else plays this") : t("Nobody plays this yet"))}</div></div>`;
   }).join("")}</div>`;
 }
@@ -445,9 +445,9 @@ function playerCard(p) {
   const rk = rankText(p);
   return `<article class="card">
     <div class="card-head">
-      <span class="role-tile">${r ? ri(r.k) + r.code : "—"}</span>
+      ${profileIcon(p) || `<span class="role-tile">${r ? ri(r.k) + r.code : "—"}</span>`}
       <div><h3>${esc(p.name || t("Unnamed"))}${p.ign ? `<span class="ign">${esc(p.ign)}</span>` : ""}</h3>
-        <div class="meta-line">${p.sub ? `<span class="subtag">${esc(t("Sub"))}</span>` : ""}${p.example ? `<span class="tag-ex">${esc(t("Example"))}</span>` : ""}${p.ranked && p.ranked.solo ? `<span class="rank" data-rk="${esc(p.ranked.solo.tier.toLowerCase())}">${esc(t(cap1(p.ranked.solo.tier)) + (p.ranked.solo.division ? " " + p.ranked.solo.division : ""))}</span><span class="lp">${p.ranked.solo.lp} LP</span>` : rk ? `<span class="rank" data-rk="${esc(String(p.rank || "").toLowerCase())}">${esc(rk)}</span>` : ""}${p.style ? `<span>${esc(t(p.style))}</span>` : ""}${secs.length ? `<span>${esc(t("Also {roles}", { roles: secs.join(", ") }))}</span>` : ""}</div>
+        <div class="meta-line">${profileIcon(p) && r ? `<span class="role">${ri(r.k)}${r.code}</span>` : ""}${p.sub ? `<span class="subtag">${esc(t("Sub"))}</span>` : ""}${p.example ? `<span class="tag-ex">${esc(t("Example"))}</span>` : ""}${p.ranked && p.ranked.solo ? `<span class="rank${emblem(p.ranked.solo.tier) ? " has-emblem" : ""}" data-rk="${esc(p.ranked.solo.tier.toLowerCase())}">${emblem(p.ranked.solo.tier, "sm")}${esc(t(cap1(p.ranked.solo.tier)) + (p.ranked.solo.division ? " " + p.ranked.solo.division : ""))}</span><span class="lp">${p.ranked.solo.lp} LP</span>` : rk ? `<span class="rank" data-rk="${esc(String(p.rank || "").toLowerCase())}">${esc(rk)}</span>` : ""}${p.style ? `<span>${esc(t(p.style))}</span>` : ""}${secs.length ? `<span>${esc(t("Also {roles}", { roles: secs.join(", ") }))}</span>` : ""}</div>
       </div>
       ${S.mode === "api" && !S.readOnly && p.ign ? `<button class="iconbtn${rankBusy && (!S.rankBusyIds || S.rankBusyIds.includes(p.id)) ? " spin" : ""}" data-act="rank-one" data-id="${esc(p.id)}" type="button" aria-label="${esc(t("Sync rank for {name}", { name: p.name }))}" title="${esc(p.ranked && p.ranked.syncedAt ? t("Rank synced {when}", { when: ago(p.ranked.syncedAt) }) : t("Sync rank from Riot"))}"${rankBusy ? " disabled" : ""}>${I.sync}</button>` : ""}
       ${S.readOnly ? "" : `<button class="iconbtn" data-act="edit-player" data-id="${esc(p.id)}" type="button" aria-label="${esc(t("Edit {name}", { name: p.name }))}" title="${esc(t("Edit"))}">${I.edit}</button>`}
@@ -466,7 +466,7 @@ function rankedBlock(p) {
   if (r.error === "not_found") return `<p class="rankrow warn">${esc(t("Riot ID {id} wasn't found on {server}. Check the spelling and the server in the player's settings.", { id: r.riotId || p.ign, server: (SERVERS.find(x => x[0] === r.platform) || [0, r.platform])[1] }))}</p>`;
   const rows = [["Solo/Duo", r.solo], ["Flex", r.flex]].filter(x => x[1]);
   if (!rows.length) return `<p class="rankrow"><span class="label">${esc(t("Ranked"))}</span><span class="hint">${esc(t("No ranked games this split"))}</span><span class="when">${esc(ago(r.syncedAt))}</span></p>`;
-  return `<div class="rankrow">${rows.map(([q, e]) => `<span class="q"><span class="label">${esc(t(q))}</span><span>${esc(queueLine(e))}</span>${e.hotStreak ? `<span class="streak">${esc(t("Win streak"))}</span>` : ""}</span>`).join("")}<span class="when">${esc(ago(r.syncedAt))}</span></div>`;
+  return `<div class="rankrow">${rows.map(([q, e]) => `<span class="q">${emblem(e.tier, "md")}<span class="label">${esc(t(q))}</span><span>${esc(queueLine(e))}</span>${e.hotStreak ? `<span class="streak">${esc(t("Win streak"))}</span>` : ""}</span>`).join("")}<span class="when">${esc(ago(r.syncedAt))}</span></div>`;
 }
 
 /* ---------- Team map ---------- */
@@ -761,6 +761,20 @@ async function saveScouting() {
   const data = scoutValues(); data.opponent = data.opponent.trim();
   const ok = await writeDoc("scouting", "next", data);
   if (ok) { S.scoutDraft = null; render(); toast(t("Scouting notes saved")); }
+}
+
+/* ---------- Riot images ---------- */
+// Profile icons come from Data Dragon (needs the current patch); rank emblems are Riot's pack, stored in /ranks
+let DD_VERSION = (() => { try { const c = JSON.parse(localStorage.getItem("fsb-ddv") || "null"); if (c && Date.now() - c.at < 864e5) return c.v; } catch (e) {} return ""; })();
+if (!DD_VERSION) fetch("https://ddragon.leagueoflegends.com/api/versions.json").then(r => r.ok ? r.json() : null).then(v => { if (Array.isArray(v) && v[0]) { DD_VERSION = v[0]; try { localStorage.setItem("fsb-ddv", JSON.stringify({ v: v[0], at: Date.now() })); } catch (e) {} render(); } }).catch(() => {});
+function profileIcon(p) {
+  const r = p.ranked; if (!r || r.icon == null || !DD_VERSION) return "";
+  return `<span class="avatar"><img src="https://ddragon.leagueoflegends.com/cdn/${esc(DD_VERSION)}/img/profileicon/${Number(r.icon)}.png" alt="" loading="lazy" onerror="this.parentNode.remove()">${r.level ? `<b>${Number(r.level)}</b>` : ""}</span>`;
+}
+const TIERS_ALL = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"];
+function emblem(tier, size) {
+  const k = String(tier || "").toLowerCase(); if (!TIERS_ALL.includes(k)) return "";
+  return `<img class="emblem${size ? " " + size : ""}" src="ranks/${k}.png" alt="" loading="lazy" onerror="this.remove()">`;
 }
 
 /* ---------- Rank sync ---------- */

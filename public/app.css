@@ -555,6 +555,17 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 15px; le
   .dr-opp input { width: 150px; }
 }
 
+
+/* ---------- Riot images ---------- */
+.avatar { position: relative; width: 44px; height: 44px; flex: none; border-radius: var(--r); overflow: visible; }
+.avatar img { width: 44px; height: 44px; border-radius: var(--r); display: block; border: 1px solid var(--line-2); }
+.avatar b { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); font-family: var(--font-display); font-size: 11px; line-height: 1; padding: 2px 5px; border-radius: 2px; background: var(--panel); border: 1px solid var(--line-2); color: var(--muted); white-space: nowrap; }
+.emblem { display: inline-block; flex: none; object-fit: contain; vertical-align: middle; }
+.emblem.sm { width: 20px; height: 20px; margin-right: 2px; }
+.emblem.md { width: 26px; height: 26px; align-self: center; }
+.rank.has-emblem::before { display: none; }
+.slot .who .emblem { width: 22px; height: 22px; margin-right: 6px; vertical-align: -2px; }
+
 /* ---------- Toast ---------- */
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); display: inline-flex; align-items: center; gap: 10px; background: var(--fg); color: var(--bg); padding: 10px 16px 10px 12px; border-radius: var(--r); font-size: 14.5px; font-weight: 600; z-index: 80; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
 .toast[hidden] { display: none; }
