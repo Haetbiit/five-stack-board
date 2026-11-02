@@ -4,7 +4,7 @@
 import { redis, codeMatches, KEY, TEAM_CODE, storeConfigured, resetConnection } from "./_lib/store.js";
 
 // Collection -> max number of entries
-const COLLECTIONS = { players: 50, comps: 200, scrims: 1000, avail: 20000, fearless: 5, scouting: 20 };
+const COLLECTIONS = { players: 50, comps: 200, scrims: 1000, avail: 20000, fearless: 5, scouting: 20, counters: 300 };
 const MAX_DOC_BYTES = 20000;
 const MAX_BATCH = 100;
 const AVAIL_KEEP_DAYS = 70;

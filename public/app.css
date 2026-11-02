@@ -614,3 +614,55 @@ legend { font-family: var(--font-display); font-weight: 700; font-size: 15px; le
   .tier-row { grid-template-columns: 1fr; gap: 4px; }
   .kicker { display: none; }
 }
+
+/* Match history on player cards */
+.games { display: grid; gap: 8px; }
+.games-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 14px; }
+.games-head .when { margin-left: auto; font-size: 12.5px; color: var(--faint); }
+.games-head .w, .srec .w { color: var(--good); } .games-head .l, .srec .l { color: var(--red); }
+.gchip small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.gchip.off { background: transparent; border-style: dashed; color: var(--muted); }
+.gchip.hot { border-color: var(--red); }
+button.gchip.suggest { cursor: pointer; border-color: var(--good); border-style: dashed; color: var(--fg); padding-right: 3px; }
+button.gchip.suggest:hover { background: var(--good-soft); }
+.gchip .sg { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 2px; background: var(--good-soft); color: var(--good); }
+.gchip .sg svg.i { width: 12px; height: 12px; }
+
+/* Scouting: their players */
+.opp-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.opp-form textarea { font-family: inherit; }
+.opp-actions { display: grid; gap: 10px; justify-items: start; }
+.opp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.opp-card { display: grid; gap: 6px; align-content: start; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel-2); min-width: 0; }
+.opp-card.bad { border-style: dashed; background: transparent; }
+.opp-card b { font-family: var(--font-display); font-size: 18px; letter-spacing: .02em; overflow-wrap: anywhere; }
+.opp-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.opp-card .rk { display: inline-flex; align-items: center; gap: 4px; }
+
+/* Stats */
+.stat-hero { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px 40px; }
+.stat-hero .form { display: grid; gap: 6px; justify-items: start; }
+.form-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.form-row .res { font-size: 13px; padding: 2px 7px; }
+.srec { display: inline-grid; grid-template-columns: 52px 40px 80px; gap: 10px; align-items: center; font-family: var(--font-display); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.srec .wl { text-align: right; }
+.srec .pc { color: var(--muted); text-align: right; font-size: 14px; }
+.wbar { height: 6px; background: var(--red-soft); display: block; }
+.wbar i { display: block; height: 100%; background: var(--good); }
+.side-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: .06em; text-transform: uppercase; }
+.side-name.blue { color: var(--blue); } .side-name.red { color: var(--red); }
+.crow-name { display: inline-flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+
+/* Draft: answers to their picks */
+.dtile.counter .ci { box-shadow: 0 0 0 2px var(--gold); }
+.dtile.ours.counter .ci { box-shadow: 0 0 0 2px var(--good), 0 0 0 4px var(--gold); }
+.lg-counter { width: 12px; height: 12px; display: inline-block; box-shadow: inset 0 0 0 2px var(--gold); }
+.sugg-row.ans { grid-template-columns: 130px minmax(0, 1fr) auto; }
+.sugg-row.ans .ans-note { grid-column: 1 / -1; white-space: normal; font-size: 13px; padding-left: 2px; }
+.chip.team { border-color: var(--gold); }
+@media (max-width: 760px) {
+  .opp-form { grid-template-columns: 1fr; }
+  .stat-hero { grid-template-columns: 1fr; }
+  .sugg-row.ans { grid-template-columns: minmax(0, 1fr) auto; } .sugg-row.ans .chips { grid-column: 1 / -1; grid-row: 2; }
+  .srec { grid-template-columns: 48px 36px 48px; }
+}

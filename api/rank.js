@@ -2,32 +2,12 @@
 // POST /api/rank  { ids?: string[], force?: boolean }   needs the x-team-code header
 // The Riot key lives only in the RIOT_API_KEY environment variable and never reaches the browser.
 import { redis, codeMatches, KEY, TEAM_CODE, storeConfigured, resetConnection } from "./_lib/store.js";
+import { RIOT_KEY, DEFAULT_PLATFORM, PLATFORMS, RiotError, riot, splitRiotId } from "./_lib/riot.js";
 
-const RIOT_KEY = process.env.RIOT_API_KEY || "";
-const DEFAULT_PLATFORM = (process.env.RIOT_DEFAULT_PLATFORM || "euw1").toLowerCase();
-const PLATFORMS = {
-  euw1: "europe", eun1: "europe", tr1: "europe", ru: "europe", me1: "europe",
-  na1: "americas", br1: "americas", la1: "americas", la2: "americas",
-  kr: "asia", jp1: "asia",
-  oc1: "sea", ph2: "sea", sg2: "sea", th2: "sea", tw2: "sea", vn2: "sea",
-};
 const FRESH_MS = 20 * 60 * 1000; // don't call Riot again for a player synced in the last 20 minutes
 const MAX_PLAYERS = 10;
 const APEX = new Set(["MASTER", "GRANDMASTER", "CHALLENGER"]);
 
-class RiotError extends Error { constructor(status, retryAfter) { super(`Riot ${status}`); this.status = status; this.retryAfter = retryAfter; } }
-
-async function riot(host, path) {
-  const r = await fetch(`https://${host}.api.riotgames.com${path}`, { headers: { "X-Riot-Token": RIOT_KEY }, signal: AbortSignal.timeout(7000) });
-  if (r.status === 404) return null;
-  if (!r.ok) throw new RiotError(r.status, Number(r.headers.get("retry-after")) || 0);
-  return r.json();
-}
-
-function splitRiotId(ign) {
-  const m = String(ign || "").trim().match(/^(.{3,16})#([A-Za-z0-9]{2,5})$/u);
-  return m ? { name: m[1].trim(), tag: m[2] } : null;
-}
 function cap(s) { return s.charAt(0) + s.slice(1).toLowerCase(); }
 function entryOut(e) { return e ? { tier: e.tier, division: APEX.has(e.tier) ? "" : e.rank, lp: e.leaguePoints, wins: e.wins, losses: e.losses, hotStreak: !!e.hotStreak } : null; }
 

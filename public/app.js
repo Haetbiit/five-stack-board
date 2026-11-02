@@ -41,6 +41,9 @@ const I = {
   copy: SVG('<rect x="9" y="9" width="13" height="13" rx="1"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>'),
   sync: SVG('<path d="M21 12a9 9 0 0 1-15.5 6.3L3 16M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>'),
   cal: SVG('<rect x="3" y="4" width="18" height="18" rx="1"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  chart: SVG('<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 6-7"/>'),
+  search: SVG('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+  up: SVG('<path d="m6 15 6-6 6 6"/>'),
 };
 function ri(k) { return ROLE[k] ? `<i class="ri" data-r="${k}" aria-hidden="true"></i>` : ""; }
 const TIERS = [
@@ -76,6 +79,9 @@ const champKey = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/
 const CHAMP_KEYS = new Map([...CHAMPS.values()].map(c => [champKey(c.name), c]));
 const CHAMP_ALIAS = { mf: "Miss Fortune", tf: "Twisted Fate", j4: "Jarvan IV", jarvan: "Jarvan IV", mundo: "Dr. Mundo", nunu: "Nunu & Willump", asol: "Aurelion Sol", monkeyking: "Wukong", wu: "Wukong", yi: "Master Yi", lee: "Lee Sin",xin: "Xin Zhao", tk: "Tahm Kench", tahm: "Tahm Kench", renata: "Renata Glasc", gp: "Gangplank", ww: "Warwick", kog: "Kog'Maw", cho: "Cho'Gath", vel: "Vel'Koz", rek: "Rek'Sai", bel: "Bel'Veth", ks: "K'Sante", kha: "Kha'Zix", khazik: "Kha'Zix", kaissa: "Kai'Sa", lb: "LeBlanc", cass: "Cassiopeia", heimer: "Heimerdinger", fiddle: "Fiddlesticks", kass: "Kassadin", kat: "Katarina", morde: "Mordekaiser", naut: "Nautilus", ori: "Orianna", sej: "Sejuani", trist: "Tristana", trynd: "Tryndamere", ez: "Ezreal", voli: "Volibear", blitz: "Blitzcrank", malph: "Malphite", malz: "Malzahar", vlad: "Vladimir", panth: "Pantheon", noc: "Nocturne", hec: "Hecarim", sera: "Seraphine", liss: "Lissandra", cait: "Caitlyn", aph: "Aphelios", eve: "Evelynn", xer: "Xerath", zil: "Zilean", gang: "Gangplank", aurelion: "Aurelion Sol", twisted: "Twisted Fate", miss: "Miss Fortune", master: "Master Yi" };
 for (const a in CHAMP_ALIAS) CHAMP_KEYS.set(a, CHAMPS.get(CHAMP_ALIAS[a].toLowerCase()));
+// Common answers to each champion in its usual role (a starting point; the team's own counters are listed first)
+const COUNTER_RAW = "Aatrox:Fiora,Irelia,Kled,Poppy;Ahri:Kassadin,Galio,Fizz,Malzahar;Akali:Galio,Lissandra,Vex,Malzahar;Akshan:Pantheon,Malzahar,Galio,Lissandra;Alistar:Janna,Morgana,Renata Glasc,Lulu;Ambessa:Poppy,Jax,Fiora,Renekton;Amumu:Graves,Kindred,Lee Sin,Olaf;Anivia:Fizz,Kassadin,Zed,Yasuo;Annie:Xerath,Syndra,Kassadin,Veigar;Aphelios:Draven,Lucian,Samira,Caitlyn;Ashe:Draven,Samira,Kalista,Lucian;Aurelion Sol:Fizz,Zed,Kassadin,Talon;Aurora:Galio,Malzahar,Kassadin,Lissandra;Azir:Fizz,Zed,Kassadin,Akali;Bard:Leona,Blitzcrank,Nautilus,Pyke;Bel'Veth:Warwick,Vi,Rammus,Jarvan IV;Blitzcrank:Morgana,Braum,Janna,Alistar;Brand:Blitzcrank,Nautilus,Leona,Pyke;Braum:Zyra,Brand,Vel'Koz,Karma;Briar:Rammus,Poppy,Warwick,Jax;Caitlyn:Samira,Draven,Kalista,Nilah;Camille:Jax,Renekton,Darius,Poppy;Cassiopeia:Kassadin,Syndra,Xerath,Zed;Cho'Gath:Vayne,Fiora,Gwen,Mordekaiser;Corki:Zed,Fizz,Kassadin,Talon;Darius:Vayne,Quinn,Teemo,Gnar;Diana:Lissandra,Galio,Malzahar,Kassadin;Dr. Mundo:Vayne,Fiora,Gwen,Kayle;Draven:Vayne,Lucian,Kalista,Varus;Ekko:Galio,Malzahar,Lissandra,Vex;Elise:Graves,Kindred,Lee Sin,Kha'Zix;Evelynn:Rengar,Kha'Zix,Lee Sin,Graves;Ezreal:Draven,Samira,Lucian,Caitlyn;Fiddlesticks:Kindred,Graves,Lee Sin,Olaf;Fiora:Poppy,Quinn,Teemo,Kennen;Fizz:Lissandra,Galio,Malzahar,Vex;Galio:Cassiopeia,Kassadin,Xerath,Syndra;Gangplank:Irelia,Riven,Camille,Kled;Garen:Vayne,Quinn,Teemo,Kayle;Gnar:Irelia,Jax,Riven,Pantheon;Gragas:Kindred,Graves,Lee Sin,Elise;Graves:Rammus,Rek'Sai,Kha'Zix,Elise;Gwen:Vayne,Kennen,Teemo,Quinn;Hecarim:Rammus,Poppy,Warwick,Vi;Heimerdinger:Fizz,Zed,Kassadin,Yasuo;Hwei:Fizz,Zed,Kassadin,Akali;Illaoi:Vayne,Gwen,Fiora,Quinn;Irelia:Poppy,Renekton,Warwick,Volibear;Ivern:Rengar,Kha'Zix,Graves,Lee Sin;Janna:Zyra,Brand,Xerath,Pyke;Jarvan IV:Olaf,Graves,Kindred,Udyr;Jax:Kennen,Teemo,Quinn,Malphite;Jayce:Renekton,Irelia,Pantheon,Camille;Jhin:Draven,Samira,Lucian,Kalista;Jinx:Draven,Samira,Kalista,Lucian;K'Sante:Vayne,Fiora,Gwen,Kayle;Kai'Sa:Draven,Caitlyn,Varus,Jhin;Kalista:Ashe,Caitlyn,Varus,Twitch;Karma:Blitzcrank,Pyke,Leona,Nautilus;Karthus:Kha'Zix,Rengar,Lee Sin,Graves;Kassadin:Zed,Talon,Pantheon,Akali;Katarina:Galio,Lissandra,Malzahar,Annie;Kayle:Darius,Renekton,Pantheon,Irelia;Kayn:Rammus,Graves,Lee Sin,Kindred;Kennen:Irelia,Yasuo,Riven,Akali;Kha'Zix:Rammus,Jarvan IV,Rek'Sai,Lee Sin;Kindred:Rek'Sai,Lee Sin,Elise,Kha'Zix;Kled:Vayne,Quinn,Teemo,Renekton;Kog'Maw:Draven,Samira,Lucian,Caitlyn;LeBlanc:Galio,Lissandra,Malzahar,Kassadin;Lee Sin:Rammus,Udyr,Volibear,Warwick;Leona:Morgana,Janna,Braum,Alistar;Lillia:Rengar,Kha'Zix,Lee Sin,Graves;Lissandra:Cassiopeia,Kassadin,Xerath,Syndra;Lucian:Draven,Caitlyn,Varus,Ashe;Lulu:Pyke,Blitzcrank,Nautilus,Leona;Lux:Fizz,Zed,Kassadin,Yasuo;Malphite:Mordekaiser,Gwen,Kennen,Sylas;Malzahar:Kassadin,Xerath,Syndra,Ziggs;Maokai:Vayne,Fiora,Gwen,Mordekaiser;Master Yi:Rammus,Jax,Warwick,Poppy;Mel:Fizz,Zed,Kassadin,Akali;Milio:Blitzcrank,Pyke,Nautilus,Leona;Miss Fortune:Draven,Samira,Lucian,Caitlyn;Mordekaiser:Vayne,Fiora,Olaf,Gwen;Morgana:Brand,Zyra,Xerath,Vel'Koz;Naafiri:Galio,Lissandra,Malzahar,Vex;Nami:Pyke,Blitzcrank,Nautilus,Leona;Nasus:Vayne,Teemo,Quinn,Kennen;Nautilus:Morgana,Janna,Braum,Alistar;Neeko:Kassadin,Fizz,Yasuo,Zed;Nidalee:Rek'Sai,Lee Sin,Kha'Zix,Elise;Nilah:Caitlyn,Ashe,Varus,Jhin;Nocturne:Rammus,Lee Sin,Graves,Volibear;Nunu & Willump:Kindred,Graves,Lee Sin,Olaf;Olaf:Kindred,Lillia,Graves,Nidalee;Orianna:Fizz,Zed,Kassadin,Akali;Ornn:Vayne,Fiora,Gwen,Mordekaiser;Pantheon:Malphite,Poppy,Jax,Warwick;Poppy:Vayne,Gwen,Kennen,Teemo;Pyke:Braum,Alistar,Leona,Tahm Kench;Qiyana:Galio,Lissandra,Malzahar,Vex;Quinn:Malphite,Pantheon,Renekton,Rumble;Rakan:Janna,Morgana,Braum,Thresh;Rammus:Kindred,Lillia,Graves,Fiddlesticks;Rek'Sai:Rammus,Volibear,Udyr,Warwick;Rell:Janna,Morgana,Braum,Lulu;Renata Glasc:Blitzcrank,Pyke,Nautilus,Leona;Renekton:Vayne,Quinn,Teemo,Kennen;Rengar:Rammus,Volibear,Jax,Udyr;Riven:Renekton,Poppy,Malphite,Jax;Rumble:Irelia,Riven,Kled,Gangplank;Ryze:Fizz,Zed,Kassadin,Akali;Samira:Caitlyn,Ashe,Jhin,Varus;Sejuani:Kindred,Graves,Lee Sin,Olaf;Senna:Pyke,Blitzcrank,Nautilus,Leona;Seraphine:Pyke,Blitzcrank,Nautilus,Leona;Sett:Vayne,Quinn,Teemo,Kennen;Shaco:Rammus,Warwick,Volibear,Udyr;Shen:Vayne,Fiora,Gwen,Kayle;Shyvana:Rammus,Lee Sin,Kindred,Graves;Singed:Vayne,Quinn,Teemo,Kayle;Sion:Vayne,Fiora,Gwen,Mordekaiser;Sivir:Draven,Samira,Lucian,Caitlyn;Skarner:Kindred,Graves,Lee Sin,Olaf;Smolder:Draven,Samira,Caitlyn,Lucian;Sona:Pyke,Blitzcrank,Nautilus,Leona;Soraka:Pyke,Blitzcrank,Nautilus,Leona;Swain:Kassadin,Xerath,Syndra,Ziggs;Sylas:Galio,Malzahar,Lissandra,Kassadin;Syndra:Fizz,Zed,Kassadin,Yasuo;Tahm Kench:Vayne,Fiora,Gwen,Mordekaiser;Taliyah:Fizz,Zed,Kassadin,Akali;Talon:Galio,Lissandra,Malzahar,Vex;Taric:Brand,Zyra,Xerath,Vel'Koz;Teemo:Pantheon,Irelia,Riven,Kled;Thresh:Morgana,Janna,Braum,Alistar;Tristana:Draven,Caitlyn,Samira,Lucian;Trundle:Vayne,Fiora,Quinn,Teemo;Tryndamere:Poppy,Malphite,Jax,Teemo;Twisted Fate:Fizz,Zed,Talon,Kassadin;Twitch:Draven,Samira,Lucian,Caitlyn;Udyr:Kindred,Graves,Lillia,Nidalee;Urgot:Vayne,Fiora,Quinn,Teemo;Varus:Draven,Samira,Lucian,Kalista;Vayne:Draven,Caitlyn,Ashe,Varus;Veigar:Fizz,Zed,Kassadin,Yasuo;Vel'Koz:Fizz,Zed,Kassadin,Talon;Vex:Kassadin,Xerath,Syndra,Ziggs;Vi:Rammus,Poppy,Volibear,Udyr;Viego:Rammus,Poppy,Volibear,Warwick;Viktor:Fizz,Zed,Kassadin,Talon;Vladimir:Cassiopeia,Syndra,Xerath,Zed;Volibear:Vayne,Quinn,Teemo,Kennen;Warwick:Kindred,Graves,Lillia,Nidalee;Wukong:Malphite,Poppy,Jax,Renekton;Xayah:Draven,Samira,Lucian,Caitlyn;Xerath:Fizz,Zed,Kassadin,Talon;Xin Zhao:Rammus,Lillia,Kindred,Graves;Yasuo:Annie,Pantheon,Malzahar,Renekton;Yone:Pantheon,Renekton,Annie,Malzahar;Yorick:Vayne,Fiora,Gwen,Quinn;Yunara:Draven,Samira,Caitlyn,Lucian;Yuumi:Pyke,Blitzcrank,Nautilus,Leona;Zac:Kindred,Graves,Lee Sin,Olaf;Zed:Galio,Lissandra,Malzahar,Vex;Zeri:Draven,Caitlyn,Samira,Lucian;Ziggs:Fizz,Zed,Kassadin,Talon;Zilean:Pyke,Blitzcrank,Nautilus,Leona;Zoe:Fizz,Zed,Kassadin,Yasuo;Zyra:Pyke,Blitzcrank,Nautilus,Leona";
+const COUNTERS = new Map(COUNTER_RAW.split(";").map(e => { const [n, cs] = e.split(":"); return [n, cs.split(",")]; }));
 const DMG_LABEL = { P: "AD", M: "AP", X: "Mixed" };
 document.getElementById("champList").innerHTML = [...CHAMPS.values()].map(c => `<option value="${esc(c.name)}"></option>`).join("");
 
@@ -112,9 +118,9 @@ const EXAMPLE = {
 };
 
 /* ---------- State ---------- */
-const COLS = ["players", "comps", "scrims", "avail", "fearless", "scouting"];
-const VIEWS = ["roster", "team", "comps", "draft", "schedule", "fearless", "scouting"];
-const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", pendingRender: false };
+const COLS = ["players", "comps", "scrims", "avail", "fearless", "scouting", "counters"];
+const VIEWS = ["roster", "team", "comps", "draft", "schedule", "stats", "fearless", "scouting"];
+const S = { players: [], comps: [], scrims: [], avail: [], fearless: [], scouting: [], counters: [], meta: {}, mode: "loading", loaded: false, readOnly: false, stale: false, view: "roster", error: "", weekOffset: 0, scoutDraft: null, roleFilter: "all", pendingRender: false };
 const LS_KEY = "five-stack-board-v2";
 const ME_KEY = "fsb-me";
 
@@ -299,7 +305,7 @@ function lockedEntry(champ) {
 async function saveSeries(next) { const cur = S.fearless.find(x => x.id === "series"); const data = { ...series(), ...next }; delete data.id; if (cur && cur.example) data.example = true; return writeDoc("fearless", "series", data); }
 
 /* ---------- Scouting data ---------- */
-const SCOUT_FIELDS = ["opponent", "matchDate", "powerPicks", "weaknesses", "gameplan"];
+const SCOUT_FIELDS = ["opponent", "matchDate", "powerPicks", "weaknesses", "gameplan", "opponentIds", "oppServer"];
 function scoutSaved() { return S.scouting.find(x => x.id === "next") || {}; }
 function scoutValues() { return { ...Object.fromEntries(SCOUT_FIELDS.map(k => [k, scoutSaved()[k] || ""])), ...(S.scoutDraft || {}) }; }
 // Nicknames that are also everyday words or gamer slang; only matched in name fields, not in free-text notes
@@ -317,6 +323,48 @@ function mentionedChamps(text) {
     }
   }
   return found.slice(0, 16);
+}
+// Champions each scouted opponent leans on: their two most-played with at least 3 recent games
+function reportThreats() {
+  const r = scoutSaved().report; if (!r || !Array.isArray(r.players)) return [];
+  const out = [];
+  r.players.forEach(p => (p.champs || []).filter(c => c[1] >= 3).slice(0, 2).forEach(c => { const i = champInfo(c[0]); if (i && !out.includes(i.name)) out.push(i.name); }));
+  return out;
+}
+function threats() { const out = mentionedChamps(scoutValues().powerPicks); reportThreats().forEach(n => { if (!out.includes(n)) out.push(n); }); return out; }
+// "Ornn, vi / ori" -> ["Ornn", "Vi", "Orianna"]; for the pick fields on a scrim
+function parsePicks(text) {
+  const out = [];
+  String(text || "").split(/[,;\n\/|]+/).forEach(s => { const i = champInfo(s); (i ? [i.name] : mentionedChamps(s)).forEach(n => { if (!out.includes(n)) out.push(n); }); });
+  return out.slice(0, 5);
+}
+
+/* ---------- Counters ---------- */
+function teamCounter(champ) { return S.counters.find(x => x.id === "k-" + champKey(champName(champ))) || null; }
+// The team's own answers first, then the built-in list; each with who on our roster can play it
+function countersFor(champ) {
+  const n = champName(champ), mine = teamCounter(n), seen = new Set(), out = [];
+  const add = (c, team) => { const i = champInfo(c); if (!i || seen.has(i.name) || i.name === n) return; seen.add(i.name); out.push({ name: i.name, team, pool: poolEntries(i.name) }); };
+  ((mine && mine.picks) || []).forEach(c => add(c, true));
+  (COUNTERS.get(n) || []).forEach(c => add(c, false));
+  return out;
+}
+function editCounters(champ) {
+  const n = champName(champ), cur = teamCounter(n);
+  openSheet(t("Our answers to {champ}", { champ: n }), `<div style="display:flex;align-items:center;gap:10px">${champIcon(n, "lg")}<p class="formhint">${esc(t("Champions your team likes into {champ}. They're listed first in the draft whenever {champ} is picked against you.", { champ: n }))}</p></div>
+    <label class="f"><span>${esc(t("Our answers"))}</span><input id="kPicks" name="kpicks" value="${esc(((cur && cur.picks) || []).join(", "))}" placeholder="${esc(t("e.g. Poppy, Renekton"))}" autocomplete="off"></label>
+    <label class="f"><span>${esc(t("Notes"))}</span><textarea id="kNote" name="knote" rows="3" placeholder="${esc(t("e.g. Poppy W stops the dash. Play for level 6."))}">${esc((cur && cur.note) || "")}</textarea></label>
+    <p class="formhint">${esc(t("Common answers: {list}", { list: (COUNTERS.get(n) || []).join(", ") || "—" }))}</p>`, {
+    onSubmit: async (f) => {
+      const picks = []; String(f.kpicks.value).split(/[,;\n\/|]+/).forEach(s => { const i = champInfo(s); if (i && i.name !== n && !picks.includes(i.name)) picks.push(i.name); });
+      const note = f.knote.value.trim();
+      const ok = await writeDoc("counters", "k-" + champKey(n), { champ: n, picks, note });
+      if (ok) toast(t("Answers to {champ} saved", { champ: n }));
+      return ok;
+    },
+    onDelete: cur ? async () => { const ok = await deleteDoc("counters", cur.id); if (ok) toast(t("Answers to {champ} removed", { champ: n })); return ok; } : null,
+    deleteLabel: t("Remove our answers"),
+  });
 }
 
 /* ---------- Analysis ---------- */
@@ -369,8 +417,10 @@ function exampleBoard() {
   b.avail = [];
   Object.entries(pattern).forEach(([pid, pat]) => [...pat].forEach((ch, i) => { if (ch === "y" || ch === "n") b.avail.push({ id: availId(days[i], pid), example: true, date: days[i], playerId: pid, status: ch === "y" ? "yes" : "no" }); }));
   b.scrims = [
-    { id: "ex-s0", example: true, date: prev[3], time: "19:30", opponent: "Northgate Esports", format: "Bo3", result: "loss", score: "1-2", review: "Lost both games where Azir got picked. Ban him next time.", vod: "" },
-    { id: "ex-s00", example: true, date: prev[5], time: "18:00", opponent: "Lowtide Gaming", format: "Bo3", result: "win", score: "2-0", review: "Early dragon setups worked well.", vod: "" },
+    { id: "ex-s01", example: true, date: prev[0], time: "19:00", opponent: "Crimson Vale Academy", format: "Bo1", result: "win", score: "1-0", review: "Clean dive bot game.", vod: "", side: "blue", compId: "ex-c1", ours: ["Ornn", "Vi", "Orianna", "Kai'Sa", "Rakan"], theirs: ["Jax", "Viego", "Ahri", "Ezreal", "Karma"] },
+    { id: "ex-s02", example: true, date: prev[1], time: "20:00", opponent: "Lowtide Gaming", format: "Bo1", result: "loss", score: "0-1", review: "Got poked out before every dragon.", vod: "", side: "red", compId: "ex-c2", ours: ["K'Sante", "Sejuani", "Syndra", "Jinx", "Lulu"], theirs: ["Jayce", "Nidalee", "Ziggs", "Varus", "Karma"] },
+    { id: "ex-s0", example: true, date: prev[3], time: "19:30", opponent: "Northgate Esports", format: "Bo3", result: "loss", score: "1-2", review: "Lost both games where Azir got picked. Ban him next time.", vod: "", side: "red", compId: "ex-c1", ours: ["Ornn", "Vi", "Orianna", "Kai'Sa", "Rakan"], theirs: ["Gnar", "Lee Sin", "Azir", "Jinx", "Nautilus"] },
+    { id: "ex-s00", example: true, date: prev[5], time: "18:00", opponent: "Lowtide Gaming", format: "Bo3", result: "win", score: "2-0", review: "Early dragon setups worked well.", vod: "", side: "blue", compId: "ex-c1", ours: ["Ornn", "Xin Zhao", "Ahri", "Kai'Sa", "Nautilus"], theirs: ["Jayce", "Nidalee", "Ziggs", "Varus", "Lux"] },
     { id: "ex-s1", example: true, date: days[1], time: "19:00", opponent: "Northgate Esports", format: "Bo3", notes: "Fearless draft. Lobby invite from their captain." },
     { id: "ex-s2", example: true, date: days[3], time: "20:00", opponent: "Crimson Vale Academy", format: "Bo1", notes: "" },
     { id: "ex-s3", example: true, date: days[5], time: "17:00", opponent: "Lowtide Gaming", format: "Block (3 games)", notes: "Practice the protect-the-carry comp." },
@@ -382,7 +432,23 @@ function exampleBoard() {
   b.scouting = [{ id: "next", example: true, opponent: "Northgate Esports", matchDate: days[1],
     powerPicks: "Azir and Taliyah in mid: their mid player is a control mage one-trick\nLee Sin and Xin Zhao for early jungle pressure\nBan: Azir, Lee Sin, Kalista",
     weaknesses: "Bot lane gets caught without vision after 15 minutes\nTop plays weakside and rarely teleports bot\nSlow to contest the first Void Grubs",
-    gameplan: "Play for early dragons around our bot lane with Vi and Rakan\nBan Azir; first-pick Orianna if it's open\nGroup mid after first tower and force the fight at second dragon" }];
+    gameplan: "Play for early dragons around our bot lane with Vi and Rakan\nBan Azir; first-pick Orianna if it's open\nGroup mid after first tower and force the fight at second dragon",
+    opponentIds: "Hollow#NGE\nBrisk#NGE\nQuill#NGE", oppServer: "euw1",
+    report: { platform: "euw1", scoutedAt: new Date(Date.now() - 3 * 3600e3).toISOString(), players: [
+      { riotId: "Hollow#NGE", rank: { tier: "DIAMOND", division: "II", lp: 41, wins: 88, losses: 71 }, role: "mid", games: 10, wins: 7, champs: [["Azir", 5, 4], ["Taliyah", 3, 2], ["Orianna", 2, 1]] },
+      { riotId: "Brisk#NGE", rank: { tier: "EMERALD", division: "I", lp: 12, wins: 120, losses: 113 }, role: "jungle", games: 10, wins: 5, champs: [["LeeSin", 6, 3], ["XinZhao", 3, 2], ["Viego", 1, 0]] },
+      { riotId: "Quill#NGE", error: "not_found" },
+    ] } }];
+  b.counters = [{ id: "k-azir", example: true, champ: "Azir", picks: ["Ahri", "Sylas"], note: "Kestrel's Ahri charm onto Azir after he uses his shuffle." }];
+  // A few weeks of ranked games so the roster shows match history offline: [champion, games, wins, role]
+  const played = { "ex-p1": [["Ornn", 9, 5, "top"], ["Gnar", 6, 4, "top"], ["Aatrox", 7, 5, "top"], ["Jax", 4, 3, "top"]], "ex-p2": [["Vi", 10, 6, "jungle"], ["Xin Zhao", 8, 5, "jungle"], ["Viego", 5, 3, "jungle"]],
+    "ex-p3": [["Ahri", 11, 7, "mid"], ["Orianna", 8, 4, "mid"], ["Sylas", 6, 4, "mid"]], "ex-p4": [["Kai'Sa", 12, 7, "bot"], ["Jinx", 9, 4, "bot"], ["Ezreal", 5, 2, "bot"]], "ex-p5": [["Nautilus", 13, 8, "support"], ["Rakan", 7, 4, "support"], ["Thresh", 6, 4, "support"]] };
+  b.players.forEach(p => {
+    const spec = played[p.id]; if (!spec) return;
+    const list = []; let n = 0;
+    spec.forEach(([c, g, w, role]) => { for (let i = 0; i < g; i++) list.push(["EX_" + p.id + "_" + n, c, role, i < w ? 1 : 0, 3 + (n * 7) % 9, 1 + (n * 5) % 6, 4 + (n * 3) % 10, Date.now() - (n++) * 9e6]); });
+    p.games = { riotId: p.ign, platform: "euw1", list, seen: list.map(x => x[0]), pending: 0, syncedAt: new Date(Date.now() - 2 * 3600e3).toISOString() };
+  });
   return b;
 }
 
@@ -422,7 +488,7 @@ function render() {
   S.pendingRender = false;
   const hasEx = COLS.some(c => S[c].some(x => x.example));
   const exBanner = hasEx && !S.readOnly ? `<div class="notice"><span>${t("You're looking at <b>example data</b>. Add your own team, then clear the examples.")}</span><button class="btn small" data-act="clear-ex" type="button">${esc(t("Clear examples"))}</button></div>` : "";
-  const views = { roster: viewRoster, team: viewTeam, comps: viewComps, draft: viewDraft, schedule: viewSchedule, fearless: viewFearless, scouting: viewScouting };
+  const views = { roster: viewRoster, team: viewTeam, comps: viewComps, draft: viewDraft, schedule: viewSchedule, stats: viewStats, fearless: viewFearless, scouting: viewScouting };
   v.innerHTML = (views[S.view] || viewRoster)() + exBanner;
   if (v.dataset.shown === S.view) v.classList.add("settled"); else { v.classList.remove("settled"); v.dataset.shown = S.view; }
 }
@@ -448,7 +514,8 @@ function lineupStrip() {
 }
 function viewRoster() {
   const canSync = S.mode === "api" && !S.readOnly && S.players.some(p => p.ign);
-  const top = pagehead(t("Roster"), t("Who plays what, how deep their pools go, and where they need cover."), S.readOnly ? "" : (canSync ? btn("rank-sync", rankBusy ? t("Syncing ranks…") : t("Sync ranks"), I.sync, "", rankBusy ? " disabled" : "") : "") + btn("add-player", t("Add player"), I.plus, "primary"));
+  const gamesLabel = gamesBusy ? (S.gamesLeft ? t("Loading games… {n} left", { n: S.gamesLeft }) : t("Loading games…")) : t("Load match history");
+  const top = pagehead(t("Roster"), t("Who plays what, how deep their pools go, and where they need cover."), S.readOnly ? "" : (canSync ? btn("rank-sync", rankBusy ? t("Syncing ranks…") : t("Sync ranks"), I.sync, "", rankBusy ? " disabled" : "") + btn("games-sync", gamesLabel, I.chart, "", gamesBusy ? " disabled" : "") : "") + btn("add-player", t("Add player"), I.plus, "primary"));
   if (!S.players.length) return top + viewEmptyRoster();
   const f = S.roleFilter;
   const plays = (p, k) => p.primaryRole === k || (p.secondaryRoles || []).includes(k);
@@ -478,6 +545,7 @@ function playerCard(p) {
     <div class="card-body">
       ${rankedBlock(p)}
       <div class="pool" style="display:grid;gap:8px">${pool || `<span class="formhint">${esc(t("No champions added yet."))}</span>`}</div>
+      ${gamesBlock(p)}
       <div class="sw"><div><span class="label">${esc(t("Strengths"))}</span><ul class="plus">${li(p.strengths)}</ul></div><div><span class="label">${esc(t("Weaknesses"))}</span><ul class="minus">${li(p.weaknesses)}</ul></div></div>
       ${p.notes ? `<p class="notes">${esc(p.notes)}</p>` : ""}
     </div>
@@ -490,6 +558,79 @@ function rankedBlock(p) {
   const rows = [["Solo/Duo", r.solo], ["Flex", r.flex]].filter(x => x[1]);
   if (!rows.length) return `<p class="rankrow"><span class="label">${esc(t("Ranked"))}</span><span class="hint">${esc(t("No ranked games this split"))}</span><span class="when">${esc(ago(r.syncedAt))}</span></p>`;
   return `<div class="rankrow">${rows.map(([q, e]) => `<span class="q">${emblem(e.tier, "md")}<span class="label">${esc(t(q))}</span><span>${esc(queueLine(e))}</span>${e.hotStreak ? `<span class="streak">${esc(t("Win streak"))}</span>` : ""}</span>`).join("")}<span class="when">${esc(ago(r.syncedAt))}</span></div>`;
+}
+
+/* ---------- Match history ---------- */
+let gamesBusy = false;
+function pct(w, n) { return n ? Math.round(w / n * 100) : 0; }
+// Games are stored as [matchId, champion, role, win, kills, deaths, assists, start]
+function gameStats(p) {
+  const list = p.games && Array.isArray(p.games.list) ? p.games.list : [];
+  if (!list.length) return null;
+  const by = new Map(); let wins = 0;
+  list.forEach(x => {
+    const n = champName(x[1]); if (!n) return;
+    const e = by.get(n) || { champ: n, g: 0, w: 0, k: 0, d: 0, a: 0, roles: {} };
+    e.g++; e.w += x[3] ? 1 : 0; e.k += x[4] || 0; e.d += x[5] || 0; e.a += x[6] || 0; if (x[2]) e.roles[x[2]] = (e.roles[x[2]] || 0) + 1;
+    by.set(n, e); wins += x[3] ? 1 : 0;
+  });
+  const champs = [...by.values()].map(e => ({ ...e, role: (Object.entries(e.roles).sort((a, b) => b[1] - a[1])[0] || [p.primaryRole])[0] })).sort((a, b) => b.g - a.g || b.w - a.w);
+  return { n: list.length, wins, champs };
+}
+// What the games say about the pool: champions played a lot but missing from it, or still marked too low
+function poolHint(p, e) {
+  const entry = poolHas(p, e.champ), wr = pct(e.w, e.g);
+  if (!entry) return e.g >= 3 ? { act: "pool-add", text: t("Played {g} games at {p}%: add to the pool", { g: e.g, p: wr }) } : null;
+  if (entry.tier === "learning" && e.g >= 5 && wr >= 50) return { act: "pool-up", text: t("Played {g} games at {p}%: move from Learning to Comfort", { g: e.g, p: wr }) };
+  if (entry.tier === "pocket" && e.g >= 8 && wr >= 55) return { act: "pool-up", text: t("Played {g} games at {p}%: move from Pocket to Comfort", { g: e.g, p: wr }) };
+  return null;
+}
+function gamesBlock(p) {
+  const st = gameStats(p);
+  if (!st) return p.games && p.games.syncedAt ? `<p class="rankrow"><span class="label">${esc(t("Recent ranked"))}</span><span class="hint">${esc(t("No ranked games found"))}</span></p>` : "";
+  const edit = !S.readOnly;
+  const chips = st.champs.slice(0, 8).map(e => {
+    const h = poolHint(p, e), inPool = !!poolHas(p, e.champ);
+    const inner = `${champIcon(e.champ)}${esc(e.champ)}<small>${e.g} · ${pct(e.w, e.g)}%</small>`;
+    const title = t("{g} games, {p}% wins, KDA {kda}", { g: e.g, p: pct(e.w, e.g), kda: ((e.k + e.a) / Math.max(1, e.d)).toFixed(1) });
+    if (h && edit) return `<button class="chip gchip suggest" type="button" data-act="${h.act}" data-id="${esc(p.id)}" data-champ="${esc(e.champ)}" data-role="${esc(e.role)}" data-g="${e.g}" title="${esc(h.text)}">${inner}<span class="sg">${h.act === "pool-add" ? I.plus : I.up}</span></button>`;
+    return `<span class="chip gchip${inPool ? "" : " off"}" title="${esc(title)}">${inner}</span>`;
+  }).join("");
+  const l = st.n - st.wins, pending = p.games.pending || 0;
+  return `<div class="games"><div class="games-head"><span class="label">${esc(t("Recent ranked"))}</span><span class="hint"><b class="w">${st.wins}${esc(t("W"))}</b> <b class="l">${l}${esc(t("L"))}</b> ·${pct(st.wins, st.n)}% ${esc(t("of {n}", { n: st.n }))}${pending ? " · " + esc(t("{n} more to load", { n: pending })) : ""}</span><span class="when">${esc(ago(p.games.syncedAt))}</span></div>
+    <div class="chips">${chips}</div></div>`;
+}
+async function syncGames(ids, opts) {
+  opts = opts || {};
+  if (gamesBusy || S.mode !== "api" || S.readOnly) return;
+  gamesBusy = true; render();
+  let added = 0, msg = "";
+  try {
+    // Each call loads a batch of games; keep going until everyone is filled in or Riot asks us to slow down
+    for (let round = 0; round < 8; round++) {
+      const r = await fetch("/api/games", { method: "POST", headers: { "Content-Type": "application/json", "x-team-code": getCode() }, body: JSON.stringify({ ids: ids || [], force: !!opts.force && round === 0 }) });
+      let j = null; try { j = await r.json(); } catch (e) {}
+      if (r.status === 503 && j && j.code === "no_key") { S.gamesOff = true; msg = t("Match history needs RIOT_API_KEY in Vercel."); break; }
+      if (!r.ok) { msg = (j && j.error) || t("Loading match history failed. Try again in a moment."); break; }
+      S.gamesOff = false;
+      added += (j.results || []).reduce((n, x) => n + (x.added || 0), 0);
+      const nf = (j.results || []).filter(x => x.status === "not_found");
+      if (nf.length) msg = t("Riot ID not found: {names}", { names: nf.map(x => x.name).join(", ") });
+      await poll(true);
+      if (j.warning) { msg = j.warning + (j.pending ? " " + t("{n} games are still waiting; load again later.", { n: j.pending }) : ""); break; }
+      if (!j.pending || opts.once) break;
+      S.gamesLeft = j.pending; render();
+      await new Promise(res => setTimeout(res, 1200));
+    }
+  } catch (e) { msg = t("Loading match history failed. Try again in a moment."); }
+  finally { gamesBusy = false; S.gamesLeft = 0; render(); }
+  if (opts.quiet) return;
+  toast([added ? tn(added, "{n} new game loaded", "{n} new games loaded") : msg ? "" : t("Match history is up to date."), msg].filter(Boolean).join(" · "));
+}
+async function changePool(pid, champ, fn) {
+  const p = playerById(pid); if (!p || S.readOnly) return false;
+  const data = { ...p, champions: fn((p.champions || []).map(c => ({ ...c }))) }; delete data.id;
+  return writeDoc("players", pid, data);
 }
 
 /* ---------- Team map ---------- */
@@ -655,6 +796,11 @@ function editScrim(id, date) {
     <p class="formhint">${esc(t("Fill this in after the scrim. It feeds the match history and your record against this team."))}</p>
     <div class="frow"><div class="f"><span>${esc(t("Outcome"))}</span><div class="radio-row">${radio("", t("Not played"))}${radio("win", t("Win"))}${radio("loss", t("Loss"))}${radio("draw", t("Draw"))}</div></div>
     <label class="f"><span>${esc(t("Score"))}</span><input id="sScore" name="sscore" value="${esc(d.score || "")}" placeholder="2-1" maxlength="12"></label></div>
+    <div class="frow"><label class="f"><span>${esc(t("Our side"))}</span><select id="sSide" name="sside">${opt("", "—", !d.side)}${opt("blue", t("Blue side"), d.side === "blue")}${opt("red", t("Red side"), d.side === "red")}</select></label>
+    <label class="f"><span>${esc(t("Comp we played"))}</span><select id="sComp" name="scomp">${opt("", "—", !d.compId)}${[...S.comps].sort((a, b) => String(a.name).localeCompare(b.name)).map(c => opt(c.id, c.name || t("Untitled comp"), d.compId === c.id)).join("")}</select></label></div>
+    <label class="f"><span>${esc(t("Our picks"))}</span><input id="sOurs" name="sours" value="${esc((d.ours || []).join(", "))}" placeholder="${esc(t("e.g. Ornn, Vi, Orianna, Kai'Sa, Rakan"))}" autocomplete="off"></label>
+    <label class="f"><span>${esc(t("Their picks"))}</span><input id="sTheirs" name="stheirs" value="${esc((d.theirs || []).join(", "))}" placeholder="${esc(t("e.g. Gnar, Lee Sin, Azir, Jinx, Nautilus"))}" autocomplete="off"></label>
+    <p class="formhint">${esc(t("Side, comp and picks feed the Stats tab. For a series, enter the game that decided it. Leave our picks empty to use the comp's champions."))}</p>
     <label class="f"><span>${esc(t("Review"))}</span><textarea id="sReview" name="sreview" rows="3" placeholder="${esc(t("What worked, what to fix next time"))}">${esc(d.review || "")}</textarea></label>
     <label class="f"><span>${esc(t("VOD link"))}</span><input id="sVod" name="svod" type="url" value="${esc(d.vod || "")}" placeholder="https://"></label>
   </fieldset>`, {
@@ -663,7 +809,8 @@ function editScrim(id, date) {
       if (!opponent) { toast(t("Add the opponent's name before saving.")); f.opp.focus(); return false; }
       if (!f.sdate.value) { toast(t("Pick a date for the scrim.")); f.sdate.focus(); return false; }
       const res = (f.querySelector('[name="sres"]:checked') || {}).value || "";
-      const data = { date: f.sdate.value, time: f.stime.value, opponent, format: f.sfmt.value, notes: f.snotes.value.trim(), result: res, score: f.sscore.value.trim(), review: f.sreview.value.trim(), vod: f.svod.value.trim() };
+      const data = { date: f.sdate.value, time: f.stime.value, opponent, format: f.sfmt.value, notes: f.snotes.value.trim(), result: res, score: f.sscore.value.trim(), review: f.sreview.value.trim(), vod: f.svod.value.trim(),
+        side: f.sside.value, compId: f.scomp.value, ours: parsePicks(f.sours.value), theirs: parsePicks(f.stheirs.value) };
       if (x && x.example) data.example = true;
       const ok = await writeDoc("scrims", x ? x.id : uid("s-"), data);
       if (ok) toast(x ? t("Scrim updated") : t("Scrim vs {team} added", { team: opponent }));
@@ -718,6 +865,51 @@ function downloadIcs() {
   toast(tn(up.length, "{n} scrim exported", "{n} scrims exported"));
 }
 
+/* ---------- Stats ---------- */
+function scrimPicks(x) {
+  if (x.ours && x.ours.length) return x.ours;
+  const c = x.compId && S.comps.find(k => k.id === x.compId);
+  return c ? ROLES.map(r => ((c.picks || {})[r.k] || {}).champ).filter(Boolean).map(champName) : [];
+}
+function recLine(rec) {
+  const n = rec.w + rec.l + rec.d;
+  return `<span class="srec"><span class="wl"><b class="w">${rec.w}</b>–<b class="l">${rec.l}</b>${rec.d ? `–${rec.d}` : ""}</span><span class="pc">${pct(rec.w, n)}%</span><span class="wbar"><i style="width:${pct(rec.w, n)}%"></i></span></span>`;
+}
+function groupRec(list, keyOf) {
+  const m = new Map();
+  list.forEach(x => [].concat(keyOf(x) || []).forEach(k => { if (!k) return; const e = m.get(k) || { k, w: 0, l: 0, d: 0, last: "" }; e[x.result === "win" ? "w" : x.result === "loss" ? "l" : "d"]++; if (x.date > e.last) e.last = x.date; m.set(k, e); }));
+  return [...m.values()].sort((a, b) => (b.w + b.l + b.d) - (a.w + a.l + a.d) || b.w - a.w);
+}
+function viewStats() {
+  const top = pagehead(t("Stats"), t("What's working in scrims: your record by side, comp, opponent and champion, and the enemy picks you lose to."));
+  const played = S.scrims.filter(x => x.result).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  if (!played.length) return top + `<div class="empty"><h3>${esc(t("No results yet"))}</h3><p>${esc(t("Open a past scrim on the Schedule tab and add the result, our side, the comp and both teams' picks. The stats build up from there."))}</p></div>`;
+  const rec = recordOf(played), n = played.length;
+  let streak = 0; const first = played[0].result; for (const x of played) { if (x.result === first) streak++; else break; }
+  const form = played.slice(0, 8).reverse().map(x => `<span class="res ${x.result}" title="${esc(x.opponent || "")} · ${esc(fmt(parseYmd(x.date)))}">${esc(t({ win: "W", loss: "L", draw: "D" }[x.result]))}</span>`).join("");
+  const summary = `<section class="panel stat-hero"><div class="record"><span class="big"><span class="w">${rec.w}</span>–<span class="l">${rec.l}</span>${rec.d ? `–${rec.d}` : ""}</span><span class="hint">${esc(t("{p}% wins over {n} scrims", { p: pct(rec.w, n), n }))}</span></div>
+    <div class="form"><span class="label">${esc(t("Form"))}</span><div class="form-row">${form}</div><span class="hint">${esc(first === "win" ? tn(streak, "{n} win in a row", "{n} wins in a row") : first === "loss" ? tn(streak, "{n} loss in a row", "{n} losses in a row") : "")}</span></div></section>`;
+
+  const sides = groupRec(played, x => x.side);
+  const sideRow = (k) => { const e = sides.find(s => s.k === k); return `<li><span class="side-name ${k}">${esc(t(k === "blue" ? "Blue side" : "Red side"))}</span>${e ? recLine(e) : `<span class="count">${esc(t("No games"))}</span>`}</li>`; };
+  const noSide = played.filter(x => !x.side).length;
+  const sidePanel = `<section class="panel"><h3>${esc(t("By side"))}</h3><ul class="list">${sideRow("blue")}${sideRow("red")}</ul>${noSide ? `<p class="formhint">${esc(tn(noSide, "{n} scrim has no side recorded.", "{n} scrims have no side recorded."))}</p>` : ""}</section>`;
+
+  const comps = groupRec(played, x => x.compId).map(e => ({ ...e, c: S.comps.find(c => c.id === e.k) })).filter(e => e.c);
+  const compPanel = `<section class="panel"><h3>${esc(t("By comp"))}</h3>${comps.length ? `<ul class="list">${comps.map(e => `<li><span><b>${esc(e.c.name || t("Untitled comp"))}</b>${ARCH[e.c.archetype] ? ` <span class="hint">${esc(t(ARCH[e.c.archetype].name))}</span>` : ""}</span>${recLine(e)}</li>`).join("")}</ul>` : `<span class="formhint">${esc(t("Pick the comp you played when you add a scrim result."))}</span>`}</section>`;
+
+  const opps = groupRec(played, x => String(x.opponent || "").trim());
+  const oppPanel = `<section class="panel"><h3>${esc(t("By opponent"))}</h3><ul class="list">${opps.slice(0, 10).map(e => `<li><span><b>${esc(e.k)}</b> <span class="hint">${esc(t("last {date}", { date: fmt(parseYmd(e.last)) }))}</span></span>${recLine(e)}</li>`).join("")}</ul></section>`;
+
+  const ours = groupRec(played, scrimPicks).filter(e => champInfo(e.k));
+  const champPanel = `<section class="panel"><h3>${esc(t("Our champions"))}</h3>${ours.length ? `<ul class="list">${ours.slice(0, 12).map(e => `<li><span class="crow-name">${champIcon(e.k, "md")}<b>${esc(e.k)}</b></span>${recLine(e)}</li>`).join("")}</ul>` : `<span class="formhint">${esc(t("Add our picks (or the comp) to scrim results to see champion records."))}</span>`}</section>`;
+
+  const theirs = groupRec(played, x => x.theirs || []).filter(e => champInfo(e.k) && e.l > 0).sort((a, b) => b.l - a.l || a.w - b.w);
+  const enemyPanel = `<section class="panel"><h3>${esc(t("Enemy picks we lose to"))}</h3><p class="hint">${esc(t("Champions on the other team in scrims we lost. Good ban and counter-pick candidates."))}</p>${theirs.length ? `<ul class="list">${theirs.slice(0, 10).map(e => { const ans = countersFor(e.k).filter(c => c.pool.length).slice(0, 3); return `<li><span class="crow-name">${champIcon(e.k, "md")}<b>${esc(e.k)}</b>${ans.length ? ` <span class="hint">${esc(t("Answers in our pools: {list}", { list: ans.map(a => a.name).join(", ") }))}</span>` : ""}</span><span class="count">${esc(t("{l} of {n} lost", { l: e.l, n: e.w + e.l + e.d }))}</span></li>`; }).join("")}</ul>` : `<span class="formhint">${esc(t("Add their picks to scrim results you lost to see this."))}</span>`}</section>`;
+
+  return top + summary + `<div class="two">${sidePanel}${compPanel}</div><div class="two">${champPanel}${enemyPanel}</div>` + oppPanel;
+}
+
 /* ---------- Fearless ---------- */
 function viewFearless() {
   const s = series(), canEdit = !S.readOnly;
@@ -758,7 +950,7 @@ function viewScouting() {
   const nextCard = next && !sameTeam(next.opponent, v.opponent) ? `<div class="notice"><span>${esc(t("Next scrim: {team} on {date}", { team: next.opponent, date: fmt(parseYmd(next.date), { weekday: "short", day: "numeric", month: "short" }) + (next.time ? ", " + next.time : "") }))}</span>${ro ? "" : btn("scout-use-next", t("Scout this team"), "", "small")}</div>` : "";
   const past = S.scrims.filter(x => sameTeam(x.opponent, v.opponent) && x.result);
   const rec = recordOf(past);
-  const champs = mentionedChamps(v.powerPicks);
+  const champs = threats();
   const dossier = `<section class="dossier">
       <div style="display:grid;gap:6px;min-width:0"><span class="vs">${esc(t("Next opponent"))}</span>
         ${ro ? `<span class="opp-name">${esc(v.opponent || t("Not set"))}</span>` : `<input class="opp-input" id="sc_opponent" data-scout="opponent" value="${esc(v.opponent)}" placeholder="${esc(t("Team name"))}" aria-label="${esc(t("Next opponent"))}" list="oppList2"><datalist id="oppList2">${[...new Set(S.scrims.map(s => s.opponent).filter(Boolean))].map(o => `<option value="${esc(o)}"></option>`).join("")}</datalist>`}</div>
@@ -770,7 +962,7 @@ function viewScouting() {
   const reviews = past.filter(x => x.review).slice(0, 3);
   const savedAt = saved.updatedAt ? new Date(saved.updatedAt) : null;
   const status = dirty ? `<span class="unsaved">${esc(t("Unsaved changes"))}</span>` : `<span class="formhint">${esc(savedAt ? t("Saved {when}", { when: savedAt.toLocaleString(locale(), { weekday: "short", hour: "2-digit", minute: "2-digit" }) }) : t("Not saved yet"))}</span>`;
-  return top + nextCard + dossier + `<div class="scout-grid">
+  return top + nextCard + dossier + scoutPlayersPanel(v) + `<div class="scout-grid">
       ${area("powerPicks", "pp", t("Power picks & bans"), t("Their best champions and what we should ban."), t("e.g. Azir mid is their comfort pick. Ban Azir, Lee Sin"))}
       ${area("weaknesses", "wk", t("Weaknesses"), t("Where they're vulnerable: lanes, timings, habits."), t("e.g. Bot lane overextends without vision"))}
       ${area("gameplan", "gp", t("Our gameplan"), t("How we play this match."), t("e.g. Play for early dragons, group after first tower"))}
@@ -778,10 +970,48 @@ function viewScouting() {
     ${ro ? "" : `<div class="savebar">${status}<div class="right">${dirty ? btn("scout-discard", t("Discard")) : ""}<button class="btn primary" type="button" data-act="scout-save"${dirty ? "" : " disabled"}>${I.check}${esc(t("Save notes"))}</button></div></div>`}
     ${reviews.length ? `<section class="panel"><h3>${esc(t("Last time against them"))}</h3><ul class="matches">${reviews.map(x => { const dt = parseYmd(x.date); return `<li><div class="sdate"><b>${esc(wd(dt))}</b><span>${esc(fmt(dt))}</span></div><div class="smain"><span style="white-space:normal;color:var(--fg)">${esc(x.review)}</span></div>${resultTag(x)}</li>`; }).join("")}</ul></section>` : ""}`;
 }
+let scoutBusy = false;
+function scoutPlayersPanel(v) {
+  const r = scoutSaved().report, ro = S.readOnly, live = S.mode === "api";
+  const cards = r && Array.isArray(r.players) ? r.players.map(p => {
+    if (p.error) return `<div class="opp-card bad"><b>${esc(p.riotId)}</b><span class="hint">${esc(p.error === "not_found" ? t("Not found on this server") : p.error === "invalid" ? t("Not a Riot ID (Name#TAG)") : t("Couldn't be loaded"))}</span></div>`;
+    const rk = p.rank ? `${emblem(p.rank.tier, "sm")}${esc(t(cap1(p.rank.tier)) + (p.rank.division ? " " + p.rank.division : ""))} · ${p.rank.lp} LP` : esc(t("Unranked"));
+    return `<div class="opp-card"><div class="opp-top"><b>${esc(p.riotId)}</b>${p.role && ROLE[p.role] ? `<span class="role">${ri(p.role)}${ROLE[p.role].code}</span>` : ""}</div>
+      <span class="hint rk">${rk}</span><span class="hint">${esc(t("Last {n} ranked: {p}% wins", { n: p.games, p: pct(p.wins, p.games) }))}</span>
+      <div class="chips">${(p.champs || []).map(c => { const n = champName(c[0]); return `<span class="chip gchip${c[1] >= 3 ? " hot" : ""}" title="${esc(t("{g} games, {p}% wins", { g: c[1], p: pct(c[2], c[1]) }))}">${champIcon(n)}${esc(n)}<small>${c[1]} · ${pct(c[2], c[1])}%</small></span>`; }).join("") || `<span class="formhint">${esc(t("No ranked games found"))}</span>`}</div></div>`;
+  }).join("") : "";
+  const form = ro ? "" : `<div class="opp-form"><label class="f"><span>${esc(t("Their Riot IDs, one per line"))}</span><textarea id="sc_opponentIds" data-scout="opponentIds" rows="3" placeholder="Name#TAG" spellcheck="false">${esc(v.opponentIds)}</textarea></label>
+    <div class="opp-actions"><label class="f"><span>${esc(t("Server"))}</span><select id="sc_oppServer" data-scout="oppServer">${SERVERS.map(([k, n]) => opt(k, n, (v.oppServer || "euw1") === k)).join("")}</select></label>
+    ${live ? btn("scout-riot", scoutBusy ? t("Scouting…") : t("Scout with Riot"), I.search, "primary", scoutBusy ? " disabled" : "") : `<p class="formhint">${esc(t("Scouting with Riot works on the shared board with a Riot API key."))}</p>`}</div></div>`;
+  return `<section class="panel"><div class="panel-head"><h3>${esc(t("Their players"))}</h3>${r && r.scoutedAt ? `<span class="hint">${esc(t("Scouted {when}", { when: ago(r.scoutedAt) }))}</span>` : ""}</div>
+    <p class="hint">${esc(t("Their rank, main role and most-played champions from recent ranked games. Champions they've played 3+ times count as threats in the draft."))}</p>
+    ${form}${cards ? `<div class="opp-grid">${cards}</div>` : ""}</section>`;
+}
+async function runScout() {
+  if (scoutBusy || S.mode !== "api" || S.readOnly) return;
+  const v = scoutValues(), riotIds = lines(v.opponentIds);
+  if (!riotIds.length) { toast(t("Add their Riot IDs first, one per line (Name#TAG).")); return; }
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  scoutBusy = true; render();
+  try {
+    const r = await fetch("/api/scout", { method: "POST", headers: { "Content-Type": "application/json", "x-team-code": getCode() }, body: JSON.stringify({ riotIds, server: v.oppServer || "euw1" }) });
+    let j = null; try { j = await r.json(); } catch (e) {}
+    if (!r.ok || !j) { toast((j && j.error) || t("Scouting failed. Try again in a moment.")); return; }
+    // Save the report with the IDs it came from; other unsaved notes stay as a draft
+    const saved = scoutSaved(), data = { ...saved, opponentIds: v.opponentIds, oppServer: v.oppServer || "euw1", report: { platform: j.platform, scoutedAt: j.scoutedAt, players: j.players } };
+    delete data.id; delete data.updatedAt; delete data.example;
+    SCOUT_FIELDS.forEach(k => { if (data[k] === undefined) data[k] = ""; });
+    if (S.scoutDraft) { delete S.scoutDraft.opponentIds; delete S.scoutDraft.oppServer; }
+    const ok = await writeDoc("scouting", "next", data);
+    if (ok) { const found = j.players.filter(p => !p.error).length; toast([tn(found, "{n} player scouted", "{n} players scouted"), j.warning].filter(Boolean).join(" · ")); }
+  } catch (e) { toast(t("Scouting failed. Try again in a moment.")); }
+  finally { scoutBusy = false; render(); }
+}
 async function saveScouting() {
   if (!S.scoutDraft) return;
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  const data = scoutValues(); data.opponent = data.opponent.trim();
+  // Keep the Riot report; only the note fields come from the draft
+  const data = { ...scoutSaved(), ...scoutValues() }; delete data.id; delete data.updatedAt; delete data.example; data.opponent = data.opponent.trim();
   const ok = await writeDoc("scouting", "next", data);
   if (ok) { S.scoutDraft = null; render(); toast(t("Scouting notes saved")); }
 }
@@ -847,7 +1077,13 @@ function maybeAutoSync() {
   if (rankAutoDone || S.mode !== "api" || S.readOnly || S.rankOff) return;
   rankAutoDone = true;
   const stale = S.players.filter(p => p.ign && !p.example && (!p.ranked || !p.ranked.syncedAt || Date.now() - Date.parse(p.ranked.syncedAt) > RANK_STALE_MS || p.ranked.riotId !== p.ign));
-  if (stale.length) setTimeout(() => syncRanks(stale.map(p => p.id), { quiet: true }), 1500);
+  const staleGames = S.players.filter(p => p.ign && !p.example && (!p.games || !p.games.syncedAt || p.games.pending || Date.now() - Date.parse(p.games.syncedAt) > RANK_STALE_MS || p.games.riotId !== p.ign));
+  if (!stale.length && !staleGames.length) return;
+  // Ranks first, then one batch of games, so the two don't compete for Riot's rate limit
+  setTimeout(async () => {
+    if (stale.length) await syncRanks(stale.map(p => p.id), { quiet: true });
+    if (staleGames.length && !S.gamesOff) syncGames(staleGames.map(p => p.id), { quiet: true, once: true });
+  }, 1500);
 }
 
 /* ---------- Draft simulator ---------- */
@@ -877,7 +1113,6 @@ function assignRoles(picks) {
   picks.forEach(c => { if (map[c]) return; const r = ROLES.map(x => x.k).find(x => !used.has(x)); if (r) { map[c] = r; used.add(r); } });
   return map;
 }
-function threats() { return mentionedChamps(scoutValues().powerPicks); }
 
 function viewDraft() {
   if (!S.draft) S.draft = loadDraft();
@@ -912,25 +1147,31 @@ function viewDraft() {
     return `<section class="dr-col ${s === "B" ? "blue" : "red"}${isUs ? " us" : ""}"><header><span class="side-tag">${esc(t(s === "B" ? "Blue side" : "Red side"))}</span><b>${esc(sideName(s))}</b></header><div class="bans">${banSlots}</div><div class="picks-col">${pickSlots}</div></section>`;
   };
 
+  // Answers to what they've locked in: champion -> the enemy picks it counters
+  const enemy = parts[them].picks.filter(Boolean), answers = new Map();
+  enemy.forEach(e => countersFor(e).forEach(c => { if (!answers.has(c.name)) answers.set(c.name, []); answers.get(c.name).push(e); }));
+
   // Champion pool grid
-  const f = d.filter || "all";
+  const f = d.filter === "counters" && !enemy.length ? "all" : d.filter || "all";
   const inPool = new Map(); S.players.forEach(p => (p.champions || []).forEach(c => { if (c.tier === "learning") return; const n = champName(c.champ); if (!n) return; if (!inPool.has(n)) inPool.set(n, []); inPool.get(n).push({ p, c }); }));
   let list = [...CHAMPS.values()].map(c => c.name);
   if (f === "pool") list = list.filter(n => inPool.has(n));
   else if (f === "threats") list = list.filter(n => th.includes(n));
+  else if (f === "counters") list = list.filter(n => answers.has(n));
   else if (ROLE[f]) list = list.filter(n => (inPool.get(n) || []).some(e => e.c.role === f));
   const tiles = list.map(n => {
     const lk = lockedEntry(n), isUsed = used.has(n.toLowerCase()), entries = inPool.get(n) || [];
     const dis = done || isUsed || !!lk;
     const who = entries.map(e => `${e.p.name} (${ROLE[e.c.role]?.code || "?"})`).join(", ");
-    const title = isUsed ? t("Already picked or banned") : lk ? t("Used in game {g}", { g: lk.game }) : who ? t("In pool: {who}", { who }) : n;
-    return `<button class="dtile${entries.length ? " ours" : ""}${th.includes(n) ? " threat" : ""}${isUsed ? " used" : ""}${lk ? " locked" : ""}" type="button" data-act="dr-pick" data-champ="${esc(n)}" data-n="${esc(n.toLowerCase())}" title="${esc(title)}"${dis ? " disabled" : ""}>${champIcon(n, "dt")}<span>${esc(n)}</span>${lk ? `<small>G${lk.game}</small>` : ""}</button>`;
+    const vs = answers.get(n);
+    const title = isUsed ? t("Already picked or banned") : lk ? t("Used in game {g}", { g: lk.game }) : [who ? t("In pool: {who}", { who }) : n, vs ? t("Answer to {list}", { list: vs.join(", ") }) : ""].filter(Boolean).join(" · ");
+    return `<button class="dtile${entries.length ? " ours" : ""}${th.includes(n) ? " threat" : ""}${vs && !dis ? " counter" : ""}${isUsed ? " used" : ""}${lk ? " locked" : ""}" type="button" data-act="dr-pick" data-champ="${esc(n)}" data-n="${esc(n.toLowerCase())}" title="${esc(title)}"${dis ? " disabled" : ""}>${champIcon(n, "dt")}<span>${esc(n)}</span>${lk ? `<small>G${lk.game}</small>` : ""}</button>`;
   }).join("");
   const fbtn = (k, label) => `<button class="fchip" type="button" data-act="dr-filter" data-val="${k}" aria-pressed="${f === k}">${label}</button>`;
   const pool = `<section class="dr-pool"><div class="dr-tools"><input id="drSearch" type="search" data-dr-search="1" placeholder="${esc(t("Search champion"))}" autocomplete="off" aria-label="${esc(t("Search champion"))}">
-      <div class="filters">${fbtn("all", esc(t("All")))}${fbtn("pool", esc(t("Our pool")))}${ROLES.map(r => fbtn(r.k, ri(r.k) + r.code)).join("")}${th.length ? fbtn("threats", esc(t("Threats"))) : ""}</div></div>
+      <div class="filters">${fbtn("all", esc(t("All")))}${fbtn("pool", esc(t("Our pool")))}${ROLES.map(r => fbtn(r.k, ri(r.k) + r.code)).join("")}${th.length ? fbtn("threats", esc(t("Threats"))) : ""}${enemy.length ? fbtn("counters", esc(t("Counters"))) : ""}</div></div>
     <div class="dgrid" id="drGrid">${tiles || `<span class="formhint">${esc(t("No champions match this filter."))}</span>`}</div>
-    <div class="legend"><span><i class="lg-ours"></i>${esc(t("In our pool"))}</span><span><i class="lg-threat"></i>${esc(t("Scouted threat"))}</span>${fl.enabled ? `<span><i class="lg-locked"></i>${esc(t("Locked by fearless"))}</span>` : ""}</div></section>`;
+    <div class="legend"><span><i class="lg-ours"></i>${esc(t("In our pool"))}</span><span><i class="lg-threat"></i>${esc(t("Scouted threat"))}</span>${enemy.length ? `<span><i class="lg-counter"></i>${esc(t("Answer to their picks"))}</span>` : ""}${fl.enabled ? `<span><i class="lg-locked"></i>${esc(t("Locked by fearless"))}</span>` : ""}</div></section>`;
 
   // Our side: suggestions and read
   const ourPicks = parts[us].picks.filter(Boolean);
@@ -958,7 +1199,17 @@ function viewDraft() {
       <div class="flags">${notes}${st.flags.filter(x => !/open$|offen$/.test(x.text)).map(x => `<span class="flag ${x.cls}">${esc(x.text)}</span>`).join("")}</div></div>`;
   }
   const finish = ourPicks.length && !S.readOnly ? `<div class="dr-finish">${btn("dr-save-comp", t("Save our picks as a comp"), I.plus)}${btn("dr-lock", fl.enabled ? t("Lock picks for fearless game {g}", { g: fl.game }) : t("Start fearless series with these picks"), I.lock, done ? "primary" : "")}</div>` : "";
-  const side = `<section class="panel dr-side">${sugg}${read || `<p class="hint">${esc(t("Your team's damage split and warnings appear here once you pick."))}</p>`}${finish}</section>`;
+  let answersBlock = "";
+  if (enemy.length && !done) {
+    const ourTurn = cur && cur[0] === us && cur[1] === "pick";
+    answersBlock = `<div class="sugg"><span class="label">${esc(t("Answers to their picks"))}</span>${enemy.map(e => {
+      const mine = teamCounter(e);
+      const cs = countersFor(e).filter(c => !used.has(c.name.toLowerCase()) && !lockedEntry(c.name)).sort((a, b) => (b.team - a.team) || (b.pool.length ? 1 : 0) - (a.pool.length ? 1 : 0)).slice(0, 5);
+      const chip = (c) => { const who = c.pool.map(x => x.p.name).filter((v, i, a) => a.indexOf(v) === i).join(", "); const cls = `chip${c.pool.length ? "" : " learning"}${c.team ? " team" : ""}`; const inner = `${champIcon(c.name)}${esc(c.name)}${who ? `<small>${esc(who)}</small>` : ""}`; const title = esc([c.team ? t("Our answer") : t("Common answer"), who ? t("In pool: {who}", { who }) : t("Not in our pools")].join(" · ")); return ourTurn ? `<button class="${cls}" type="button" data-act="dr-pick" data-champ="${esc(c.name)}" title="${title}">${inner}</button>` : `<span class="${cls}" title="${title}">${inner}</span>`; };
+      return `<div class="sugg-row ans"><span class="crow-name">${champIcon(e, "md")}<b>${esc(e)}</b></span><div class="chips">${cs.length ? cs.map(chip).join("") : `<span class="hint">${esc(t("No answers left"))}</span>`}</div>${S.readOnly ? "" : `<button class="iconbtn sm" type="button" data-act="counter-edit" data-champ="${esc(e)}" aria-label="${esc(t("Edit our answers to {champ}", { champ: e }))}" title="${esc(t("Edit our answers to {champ}", { champ: e }))}">${I.edit}</button>`}${mine && mine.note ? `<p class="hint ans-note">${esc(mine.note)}</p>` : ""}</div>`;
+    }).join("")}</div>`;
+  }
+  const side = `<section class="panel dr-side">${sugg}${answersBlock}${read || `<p class="hint">${esc(t("Your team's damage split and warnings appear here once you pick."))}</p>`}${finish}</section>`;
 
   return top + setup + `<div class="draft">${col("B")}${pool}${col("R")}</div>` + side;
 }
@@ -1064,7 +1315,7 @@ function editPlayer(id) {
       if (!name) { toast(t("Give the player a name before saving.")); f.name.focus(); return false; }
       const champs = [];
       f.querySelectorAll(".crow").forEach(row => { const champ = champName(row.querySelector('[name="cChamp"]').value); if (champ) champs.push({ champ, role: row.querySelector('[name="cRole"]').value, tier: row.querySelector('[name="cTier"]').value }); });
-      const data = { name, ign: f.ign.value.trim(), server: f.server.value, ranked: p && p.ranked ? p.ranked : undefined, rank: f.rank.value, div: f.div.value, style: f.style.value, sub: f.spot.value === "sub", primaryRole: f.primaryRole.value,
+      const data = { name, ign: f.ign.value.trim(), server: f.server.value, ranked: p && p.ranked ? p.ranked : undefined, games: p && p.games ? p.games : undefined, rank: f.rank.value, div: f.div.value, style: f.style.value, sub: f.spot.value === "sub", primaryRole: f.primaryRole.value,
         secondaryRoles: [...f.querySelectorAll('[name="sec"]:checked')].map(x => x.value).filter(k => k !== f.primaryRole.value),
         champions: champs, strengths: lines(f.strengths.value), weaknesses: lines(f.weaknesses.value), notes: f.notes.value.trim() };
       if (p && p.example) data.example = true;
@@ -1163,6 +1414,17 @@ document.addEventListener("click", (e) => {
   if (act === "copy-week") return copyText(weekSummary());
   if (act === "rank-sync") return syncRanks(null, { force: true });
   if (act === "rank-one") return syncRanks([el.dataset.id], { force: true });
+  if (act === "games-sync") return syncGames(null, { force: true });
+  if (act === "pool-add" || act === "pool-up") {
+    const { id, champ, role } = el.dataset, p = playerById(id); if (!p) return;
+    changePool(id, champ, cs => {
+      if (act === "pool-up") { const e = cs.find(c => champName(c.champ) === champ); if (e) e.tier = "comfort"; return cs; }
+      return [...cs, { champ, role: ROLE[role] ? role : p.primaryRole, tier: Number(el.dataset.g) >= 5 ? "comfort" : "pocket" }];
+    }).then(ok => { if (ok) toast(act === "pool-up" ? t("{champ} moved to Comfort for {name}", { champ, name: p.name }) : t("{champ} added to {name}'s pool", { champ, name: p.name })); });
+    return;
+  }
+  if (act === "scout-riot") return runScout();
+  if (act === "counter-edit") return editCounters(el.dataset.champ);
   if (act === "dr-pick") return draftPick(el.dataset.champ);
   if (act === "dr-skip") return draftPick(null);
   if (act === "dr-undo") { S.draft.seq.pop(); saveDraft(); render(); return; }
