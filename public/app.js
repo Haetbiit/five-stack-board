@@ -302,10 +302,20 @@ async function saveSeries(next) { const cur = S.fearless.find(x => x.id === "ser
 const SCOUT_FIELDS = ["opponent", "matchDate", "powerPicks", "weaknesses", "gameplan"];
 function scoutSaved() { return S.scouting.find(x => x.id === "next") || {}; }
 function scoutValues() { return { ...Object.fromEntries(SCOUT_FIELDS.map(k => [k, scoutSaved()[k] || ""])), ...(S.scoutDraft || {}) }; }
+// Nicknames that are also everyday words or gamer slang; only matched in name fields, not in free-text notes
+const PROSE_SKIP = new Set(["miss", "master", "ez", "ks", "eve", "wu", "gang", "twisted"]);
 function mentionedChamps(text) {
-  const s = " " + String(text || "").toLowerCase().replace(/\.(?=\s|$)/g, " ").replace(/[^a-z0-9'.& ]+/g, " ") + " ";
+  // Words are tried in groups of three, two, then one, so "lee sin", "dr mundo" and "kai sa" match as one champion
+  const words = String(text || "").toLowerCase().normalize("NFD").split(/[^a-z0-9'.&]+/).map(champKey);
   const found = [];
-  for (const c of CHAMPS.values()) { const n = c.name.toLowerCase(); if (s.includes(" " + n + " ") && !found.includes(c.name)) found.push(c.name); }
+  for (let i = 0; i < words.length; i++) {
+    for (let n = 3; n >= 1; n--) {
+      if (i + n > words.length) continue;
+      const k = words.slice(i, i + n).join("");
+      const c = k && !(n === 1 && PROSE_SKIP.has(k)) ? CHAMP_KEYS.get(k) : null;
+      if (c) { if (!found.includes(c.name)) found.push(c.name); i += n - 1; break; }
+    }
+  }
   return found.slice(0, 16);
 }
 
