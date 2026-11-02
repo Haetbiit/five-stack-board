@@ -1,0 +1,7 @@
+{
+  "name": "five-stack-board",
+  "private": true,
+  "type": "module",
+  "description": "Team planner for a League of Legends five-stack: roster, champion pools, role coverage and draft comps.",
+  "engines": { "node": ">=20" }
+}

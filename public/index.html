@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0d14">
+<meta name="description" content="Roster, champion pools, role coverage and draft comps for our five-stack.">
+<title>Five-Stack Board</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5 20.5 7.4v9.2L12 21.5 3.5 16.6V7.4z' fill='%230a0d14' stroke='%23e3bf72' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cpath d='M12 7.2 16.2 9.6v4.8L12 16.8 7.8 14.4V9.6z' fill='%23e3bf72'/%3E%3C/svg%3E">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a sleek team client. Sticky glass header with segmented views, then one working surface: lineup + roster cards, a team map, or draft sheets laid out as five role slots. Dark-first, hextech gold accent. */
+:root {
+  --bg: #0a0d14;
+  --surface: #11161f;
+  --surface-2: #171d28;
+  --surface-3: #1f2733;
+  --line: #222a37;
+  --line-strong: #323c4d;
+  --fg: #e9edf4;
+  --muted: #949db0;
+  --faint: #636c7f;
+  --accent: #e3bf72;
+  --accent-soft: #2a2417;
+  --accent-line: #5a4a26;
+  --accent-btn: #e3bf72;
+  --accent-btn-fg: #1a1406;
+  --hex: #5fd3e2;
+  --good: #5fd09a; --good-soft: #13291f;
+  --warn: #f0b85a; --warn-soft: #2d2412;
+  --bad: #f2878b; --bad-soft: #321a1c;
+  --ad: #f4915c; --ap: #8f9dff;
+  --header: rgba(10, 13, 20, .78);
+  --shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 10px 30px -12px rgba(0,0,0,.6);
+  --shadow-lift: 0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -14px rgba(0,0,0,.75);
+  --scrim: rgba(3, 5, 9, .62);
+  --glow: radial-gradient(1200px 420px at 15% -10%, rgba(227,191,114,.07), transparent 60%), radial-gradient(900px 380px at 95% -5%, rgba(95,211,226,.06), transparent 60%);
+  /* Rank crest colours, mid-tone so they read on both themes */
+  --rk-iron: #7c7f86; --rk-bronze: #a8714a; --rk-silver: #9aa6b2; --rk-gold: #d8a845; --rk-platinum: #3fb5a8;
+  --rk-emerald: #2fbf71; --rk-diamond: #6d8cf0; --rk-master: #b46be0; --rk-grandmaster: #e0525a; --rk-challenger: #f0c95c;
+  --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r-sm: 8px; --r: 12px; --r-lg: 16px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eef1f6; --surface: #ffffff; --surface-2: #f4f6fa; --surface-3: #e8ecf2; --line: #e0e5ec; --line-strong: #c8d0dc;
+    --fg: #101521; --muted: #5a6376; --faint: #8b93a4; --accent: #946812; --accent-soft: #f7efdc; --accent-line: #e0c78f;
+    --accent-btn: #d9aa4c; --accent-btn-fg: #1a1406; --hex: #0a8597;
+    --good: #1f7a4f; --good-soft: #dff2e8; --warn: #8d5b05; --warn-soft: #f8ecd2; --bad: #b2343a; --bad-soft: #f8e0e0;
+    --ad: #c2541f; --ap: #4a5fd0; --header: rgba(255, 255, 255, .82);
+    --shadow: 0 1px 2px rgba(16,24,40,.05), 0 8px 24px -12px rgba(16,24,40,.12);
+    --shadow-lift: 0 2px 4px rgba(16,24,40,.06), 0 18px 36px -14px rgba(16,24,40,.22);
+    --scrim: rgba(16, 21, 33, .42);
+    --glow: radial-gradient(1200px 420px at 15% -10%, rgba(217,170,76,.10), transparent 60%), radial-gradient(900px 380px at 95% -5%, rgba(10,133,151,.07), transparent 60%);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #eef1f6; --surface: #ffffff; --surface-2: #f4f6fa; --surface-3: #e8ecf2; --line: #e0e5ec; --line-strong: #c8d0dc;
+  --fg: #101521; --muted: #5a6376; --faint: #8b93a4; --accent: #946812; --accent-soft: #f7efdc; --accent-line: #e0c78f;
+  --accent-btn: #d9aa4c; --accent-btn-fg: #1a1406; --hex: #0a8597;
+  --good: #1f7a4f; --good-soft: #dff2e8; --warn: #8d5b05; --warn-soft: #f8ecd2; --bad: #b2343a; --bad-soft: #f8e0e0;
+  --ad: #c2541f; --ap: #4a5fd0; --header: rgba(255, 255, 255, .82);
+  --shadow: 0 1px 2px rgba(16,24,40,.05), 0 8px 24px -12px rgba(16,24,40,.12);
+  --shadow-lift: 0 2px 4px rgba(16,24,40,.06), 0 18px 36px -14px rgba(16,24,40,.22);
+  --scrim: rgba(16, 21, 33, .42);
+  --glow: radial-gradient(1200px 420px at 15% -10%, rgba(217,170,76,.10), transparent 60%), radial-gradient(900px 380px at 95% -5%, rgba(10,133,151,.07), transparent 60%);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html.locked, html.locked body { overflow: hidden; }
+body { background: var(--bg); background-image: var(--glow); background-repeat: no-repeat; color: var(--fg); font-family: var(--font-body); font-size: 14.5px; line-height: 1.5; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 40; background: var(--bg); }
+button, input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; letter-spacing: -.015em; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--hex); outline-offset: 2px; border-radius: 6px; }
+
+/* Header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: var(--header); -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px); border-bottom: 1px solid var(--line); }
+.bar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; padding-block: 12px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.mark { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(145deg, var(--accent-soft), var(--surface-2)); border: 1px solid var(--accent-line); color: var(--accent); }
+.mark svg { width: 20px; height: 20px; }
+.brand-text { display: grid; min-width: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.teamname { font-size: 19px; font-weight: 700; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.teamname #teamName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hdr-right { justify-self: end; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.status { justify-self: end; display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); padding: 6px 11px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; max-width: 100%; }
+.status #statusText { overflow: hidden; text-overflow: ellipsis; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px var(--good-soft); flex: none; }
+.status.local .dot { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-soft); }
+.status.ro .dot { background: var(--faint); box-shadow: none; }
+@media (prefers-reduced-motion: no-preference) { .status:not(.local):not(.ro) .dot { animation: pulse 2.4s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 6px transparent; } } }
+
+.tabs { display: inline-flex; gap: 2px; padding: 4px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs a { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 13.5px; color: var(--muted); text-decoration: none; padding: 7px 14px; border-radius: 9px; white-space: nowrap; transition: color .15s, background .15s; }
+.tabs a:hover { color: var(--fg); }
+.tabs a[aria-current="page"] { color: var(--fg); background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.18), 0 0 0 1px var(--line-strong); }
+.tabs a .n { font-family: var(--font-mono); font-size: 10.5px; min-width: 18px; padding: 1px 5px; border-radius: 999px; background: var(--surface-3); color: var(--muted); text-align: center; }
+.tabs a[aria-current="page"] .n { background: var(--accent-soft); color: var(--accent); }
+.tabs a .n:empty { display: none; }
+
+main .wrap { padding-block: 28px 72px; display: grid; gap: 22px; }
+
+/* Controls */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line-strong); background: var(--surface-2); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13.5px; white-space: nowrap; transition: background .15s, border-color .15s, transform .1s, filter .15s; }
+.btn:hover { background: var(--surface-3); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .6; cursor: progress; }
+.btn.primary { background: var(--accent-btn); color: var(--accent-btn-fg); border-color: transparent; box-shadow: 0 6px 18px -8px var(--accent-btn); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.danger { color: var(--bad); background: transparent; border-color: var(--line); }
+.btn.danger:hover { background: var(--bad-soft); border-color: transparent; }
+.btn.small { padding: 5px 10px; font-size: 12.5px; border-radius: 8px; }
+.iconbtn { display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none; border: 0; background: transparent; color: var(--muted); cursor: pointer; border-radius: 9px; transition: background .15s, color .15s; }
+.iconbtn:hover { background: var(--surface-3); color: var(--fg); }
+.iconbtn.sm { width: 28px; height: 28px; }
+
+.toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.toolbar h2 { font-size: 26px; font-weight: 700; }
+.toolbar p { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+.toolbar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.banner { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 10px 12px 10px 16px; border-radius: var(--r); background: var(--accent-soft); border: 1px solid var(--accent-line); font-size: 13.5px; }
+.banner > span { display: inline-flex; align-items: center; gap: 10px; }
+.banner > span svg { color: var(--accent); }
+.banner.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+
+/* Filters */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all .15s; }
+.fchip:hover { color: var(--fg); border-color: var(--line-strong); }
+.fchip[aria-pressed="true"] { color: var(--fg); background: var(--surface-3); border-color: var(--line-strong); }
+.fchip .ri { width: 14px; height: 14px; }
+.fchip .c { font-family: var(--font-mono); font-size: 10.5px; color: var(--faint); }
+
+/* Role badges and glyphs (alpha masks painted with currentColor) */
+.role { justify-self: start; display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-weight: 600; font-size: 10.5px; letter-spacing: .08em; padding: 3px 7px 3px 5px; border-radius: 6px; background: var(--surface-3); color: var(--muted); line-height: 1.2; }
+.role.big { width: 44px; height: 44px; padding: 0; justify-content: center; flex-direction: column; gap: 1px; border-radius: 12px; font-size: 9.5px; background: var(--surface-3); color: var(--fg); border: 1px solid var(--line-strong); flex: none; }
+.ri { width: 14px; height: 14px; flex: none; display: inline-block; background: currentColor; -webkit-mask: var(--ri) center / contain no-repeat; mask: var(--ri) center / contain no-repeat; }
+.role.big .ri { width: 18px; height: 18px; }
+th .ri { width: 15px; height: 15px; vertical-align: -3px; margin-right: 5px; }
+.checks .ri { width: 15px; height: 15px; }
+.ri[data-r="top"] { --ri: url("data:image/webp;base64,UklGRqABAABXRUJQVlA4TJMBAAAvL8ALEAXcNpIkSem/0xT6qare3Ts1Apa1bWqT75sEd4njcF1bRGaSTorrlcNuYBfuduUshxW0pTITEPxNkT2PhdcxMGPHlp1Zmw7MB3jBDuwy4355xJ1tDVWNSVXGNQYYXNlhNJhB/4xbHUgE+IwG45qFRIBBh7Zmp3/GFYFEgIGQF2Cp2TmBRICBcZmopM348+rNa9WzF6cEYoABh1ThlzQZj0EvBhhwJBQtaPDG0slqxCAIuJRELOvwGrCCTgwMUhKSfIorE1MzeLnj0ORQ9QG2USN7Y/qewMCoilR5lVpSDPAJI1IxuYpp+VeUSWolZf8mqZhcxbTcI0Yt0bKVtqL0iD5FOflVTsnUlOelcUDL+wEvZ/wzzg7VNg3GhQ4CH9JgXBKIAXYSyO1QZVyzCCLAoNdogxbjlo1EgIEBHqfO5VhQLtlgXOlADDDgUDK6U5miKk78sJAIMOBQErK3goEFwwERYMChJCTVfrVigIFxkhKT/WL6CjHAQChToWWDtBXRzYo8EV8wKtITfDqO1/6KAA=="); }
+.ri[data-r="jungle"] { --ri: url("data:image/webp;base64,UklGRgoDAABXRUJQVlA4TP4CAAAvL8ALENXQlm1btdWc///pDsmRfU7steOyYOOyY1fisxiVFZcF+0ZAAgCwbJR0Z9u2bdv2y7Zt++7lu69t27Zt274J8AsleGAJPKwJNgTTgYumIIcNMX0xGSixRtlxSIkJThtQUzWhou5Otf3agJxRKGxTWVJIgrUfaFJPkeXko8HNC+xt7FNixX9vYzqHjDBo7QHS3vFAn8MjVsMwmFq7Smpy1ZZjNO9wxin4o20rsQjHv9smadtcJDsPrS1tQHaTP/Ist7f9HG1LiQy/vMLRxsfKRwkabVsb7v0aeq2PKRishQpLLRHma+Xkhe1jQ6F5vUerf0iH2jHU8tE6I7sBpUNaE6os1bLwR73aLoe4c42Dli5izn/ocVgiv94IHi5qCQMTeAp038VXoQkmyyGsfCaougxpCd8r0paWiHFLruXerRbmwjlaLk3Q2UroFjQRvTHnZ8htlohzzzqw2n6WaM9ZsXcZ0pG+IrsBEpBnYbVsQ1iu8tby0CGjcw+2gikl4T1UKpx/zKHXNuoOU2HI4cGLWOfGPKOiJOUGf7zBrP8k1FklmclLl8OAvv8v/OTpL42w9B7CbZgkHwRTJM5m7t7bDnNIc856KNsAAtPnsHLfFxwET+8DGUh+dDjh4uv0nOUJ7vz3rCuSStEKZRPNPMtrlylKFLKm58Hr9PSQbMPs0iFduZHZmqIJBY9Z13D+W/jNWZhswoRdE8E+h6d3tmkGS5mTrEnW8Aajo5Wk51nOxjSWNIaf7JyDsaVgsJUbuWc5KWiStfZdPcS6lEita1/JdpkK39zYdZbH1iJR6Tdyf6rR7vKasz0YdQzPcyM3EHNM4xC5q/Rtcz6UQsj1Ot/AyOHUJdxs8N93sAO2Irvm2fkGlNMvfsVw+jZ2wWliEj7OXTxm+Re16VtYreE3K3ouHnfYHqcnZ2HMxSfYunjs0cCgOz09lFoOh8cfXjCdsx6CXXR4iiW0bOcsv1qeagkXZ/nnju1kLBF7Ro6LJ1yiDZ8gp+Tw5Ec7tU9R"); }
+.ri[data-r="mid"] { --ri: url("data:image/webp;base64,UklGRtwBAABXRUJQVlA4TNABAAAvL8ALELehoG0bxvxJd5fD/M8/mzaSJEfX3ftlC+SgnYAkoQG5AyODF4JgoXeAYuIBIMeACwCjWQY2AIriA/woIACAZdt22uY9KcxQRoPkgsNqNP+xObLuU+k7ov+M3LZxJEHAnMr2fQP9U7LUEN0J5O87BhI4XC1FLtYjImaqNvVm87m5Im5vfPVhrEDz8TQg1rT3oTvqtFmaLMdm5obDTq7x6OooNi+gub1Vlw7eBWPnNxgwjianNDHfmlTQuU2NyMvr6WwaMWh/qcXXFmIm6HIH+Zbnk69II2asOCLM+YNWhJgSx8eHWL6JmCQkpWWAzjARsdlA+0sJSGYjrag/FpGSflkTC0iYrXP/vhCR0IMxS0jZIF6o82gyC8mqBulCvQeb55Dc3nWFszHTosoKSGbvtDRimpc5xJS3SnzzXTCQxceNPCHrR0VKeK8GTBFEoy4p4b0qhsSzYZKDpD+WSchKQWnJQjEVzxCarD/hpzjuBNGh7ZfDj2XslTmbXpeQ2juUuqtMzLIoEBvvwGz6zuZxRaDgdwVTu6NrPIWzqVvzKvpsRdn5wLDBs/SruIo9F1ebz82m3lTETDRaL5YiV0PJJ/sbP+2dQJ360/A/SQ=="); }
+.ri[data-r="bot"] { --ri: url("data:image/webp;base64,UklGRqABAABXRUJQVlA4TJQBAAAvL8ALEHVActtIktT//zQPNVOZOevV7toiINnWnraRfjnMUphpjIsw22EccbKbLKPMMOIupysIRxOQPyq8fOzLc0iILRU9ROB9jYQWnbHwZL7FX6hp94idRNL8km8scJqdzfO+z+k35RRKA8Kv+EIduedSTqE0oIhfqxBGaPSZb7JQmpbFNa43ctMUhYSfcRGeF2pACe5wJ6MhOpq5DXgQN7jNNUG4oDPTPq5wh3uGUJqZBYeLy+GaIjgJiTVufy3pzk98ODmuGUbiBV/SSKspKW8PVa7AG2+r1LROxvbUQL+I0km8t6UKfBHl903e3rRVNOzfQCeStqV+FVUN6r0NE/0SCdch8DFKSFacVPSj4S/QnYtuGvbR8LSbSuR6obmziFQS+kJwikxkvbzPoJNJWJpmrqcJokwi9kJwWmDt1Yu3Ue9v/5fzkAQDSwP6uLjmD4iIpQF9XF32jjOdh7YNKOIGv6/5Iw0oi7vL/voygVPXl43DShsHw10wEPF3LTfeFwUzfaO1Bo/sC3XHdyxhfQf+jg=="); }
+.ri[data-r="support"] { --ri: url("data:image/webp;base64,UklGRtQCAABXRUJQVlA4TMcCAAAvL8ALEHVActtIklT//zQPvU0XMHdnZ7kiQg623aYdrb3WjlXZSZe0tjP2dGGXbmyb3ZS2jda2PZ2njLn3Xv8E5B/Gb5+CydvrBCv2eeBun+5ak/kaiRp4V1AU8q0R4SlvfL/8Ce6KmO+5DFxf3nXle8wS61X5Z7u51/pWJnL9r/CwOr/gfEw+TqPG2KbQ2ZfakPTjfIzDRjdwdO5e2cH5WJP5ppj+pmm30oNIduwA7q6dYUNymW7a/aYp5i+tfsH7VMdBLEPiItTFkLXzG3jfL62R6HhrjOOf38JoD8tgcb7saxabUuHmn9/GoD+JIYkOP6Hcmj6uqfbgiYIrMynQ1cdZd+vnLyFhcCTbqw/afd+7pcJoDyZJJ9rpGui+791W309yMJMkJJFng3cm4Hnq1EFskuxcNdHn8c4GeQeF5PlqMgrN1q7NUmN0eDA3WLmYKJ+DVgU6l6XatN8KcUKYvDlsHp0BntaAtIPihpvXnUg10BHq7EGPLM6HzIiKLcB3160w43V7z4pb3d21Jdcw+ZxEC90DXK1MpBsQVuagXL1L92gJyec4Uv2kCzqj+KBo7Ex3onimXeOX1IPwH4hwu+WFVT9E4lhS7q4lGZG7a/Gt2yL+IMQUx/RCjXMORFSc6N7NQVfsv3/tOG4Kyd/Ksdw7qPkHEewdCKsZcpD5UO8svw76Y9KkJjskI6kBoNPIOCi9bpK0f5MwTZJGA0w71RiSJF354mrDxlLg2rtXdkhXvt448SwHkZxzeQdCuxrmoFPiyNAPtJ0akHEQPgOJBhDadlVDyBl2LAHu4a4l2WcgceJVDiInYLK8A+FhNcxB63sTGQaBPkxvGcHfI9EAtE+nGkK+t2O1YOJZltUH7TNY2eEf9tSqMwRHj+Fy7d2fnkzOyESJ98Dd9V5JVs65I8kx6CUpO2cliQWTNOddK1krp27zXwMA"); }
+
+/* Lineup */
+.lineup { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.slot { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 6px; min-width: 0; box-shadow: var(--shadow); }
+.slot-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.slot .state { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px var(--good-soft); }
+.slot .state.warn { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-soft); }
+.slot .state.bad { background: var(--bad); box-shadow: 0 0 0 3px var(--bad-soft); }
+.slot .who { font-family: var(--font-display); font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot.open { border-style: dashed; background: transparent; box-shadow: none; }
+.slot.open .who { color: var(--bad); }
+.slot .meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Player cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 18px; display: grid; gap: 16px; min-width: 0; transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s; }
+.card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-lift); }
+@media (prefers-reduced-motion: no-preference) { .card:hover { transform: translateY(-2px); } }
+.card-head { display: flex; gap: 14px; align-items: flex-start; }
+.card-head > div { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.card-head h3 { font-size: 20px; font-weight: 700; overflow-wrap: anywhere; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ign { font-family: var(--font-mono); font-size: 11.5px; color: var(--faint); font-weight: 500; letter-spacing: 0; }
+.pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.pill.rank { color: var(--fg); }
+.pill.rank::before { content: ""; width: 8px; height: 8px; transform: rotate(45deg); border-radius: 2px; background: var(--rk, var(--faint)); }
+.pill.rank[data-rk="iron"] { --rk: var(--rk-iron); } .pill.rank[data-rk="bronze"] { --rk: var(--rk-bronze); }
+.pill.rank[data-rk="silver"] { --rk: var(--rk-silver); } .pill.rank[data-rk="gold"] { --rk: var(--rk-gold); }
+.pill.rank[data-rk="platinum"] { --rk: var(--rk-platinum); } .pill.rank[data-rk="emerald"] { --rk: var(--rk-emerald); }
+.pill.rank[data-rk="diamond"] { --rk: var(--rk-diamond); } .pill.rank[data-rk="master"] { --rk: var(--rk-master); }
+.pill.rank[data-rk="grandmaster"] { --rk: var(--rk-grandmaster); } .pill.rank[data-rk="challenger"] { --rk: var(--rk-challenger); }
+.tag-ex { font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-line); padding: 1px 6px; border-radius: 5px; }
+.label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+.pool { display: grid; gap: 8px; padding: 12px; border-radius: var(--r); background: var(--surface-2); }
+.tier-row { display: grid; grid-template-columns: 68px 1fr; gap: 8px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 500; background: var(--surface); border: 1px solid var(--line); line-height: 1.35; }
+.chip small { font-family: var(--font-mono); font-size: 9.5px; color: var(--muted); letter-spacing: .04em; }
+.chip.main { background: var(--accent-soft); border-color: var(--accent-line); color: var(--fg); font-weight: 600; }
+.chip.main .ci { box-shadow: 0 0 0 1.5px var(--accent); }
+.chip.comfort { border-color: var(--line-strong); }
+.chip.pocket { border-style: dashed; border-color: var(--line-strong); }
+.chip.learning { color: var(--muted); border-style: dotted; border-color: var(--line-strong); background: transparent; }
+button.chip { cursor: pointer; transition: border-color .15s, background .15s; }
+button.chip:hover { border-color: var(--hex); }
+.sw { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sw ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; }
+.sw li { padding-left: 20px; position: relative; font-size: 13px; overflow-wrap: anywhere; }
+.sw li::before { position: absolute; left: 0; top: 2px; width: 14px; height: 14px; border-radius: 4px; display: grid; place-items: center; font-family: var(--font-mono); font-weight: 700; font-size: 11px; line-height: 1; }
+.sw .plus li::before { content: "+"; color: var(--good); background: var(--good-soft); }
+.sw .minus li::before { content: "−"; color: var(--bad); background: var(--bad-soft); }
+.sw .none { color: var(--faint); font-size: 12.5px; padding-left: 0; }
+.sw .none::before { content: none; }
+.notes { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); font-size: 13px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; display: flex; gap: 8px; }
+.notes svg { color: var(--faint); margin-top: 2px; }
+
+/* Empty / loading */
+.empty { border: 1.5px dashed var(--line-strong); border-radius: var(--r-lg); padding: 44px 24px; text-align: center; display: grid; gap: 10px; justify-items: center; background: var(--surface); }
+.empty .ico { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line); margin-bottom: 4px; }
+.empty .ico svg { width: 24px; height: 24px; }
+.empty h3 { font-size: 20px; }
+.empty p { margin: 0; color: var(--muted); max-width: 52ch; }
+.empty .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.skel { display: grid; gap: 16px; }
+.skel .line { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.sk { border-radius: var(--r); background: var(--surface-2); border: 1px solid var(--line); }
+.sk.slot-sk { height: 76px; } .sk.card-sk { height: 260px; border-radius: var(--r-lg); }
+@media (prefers-reduced-motion: no-preference) { .sk { background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; } @keyframes shimmer { to { background-position: -200% 0; } } }
+.skel-note { color: var(--muted); font-size: 13px; }
+
+/* Team map */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; display: grid; gap: 14px; min-width: 0; box-shadow: var(--shadow); align-content: start; }
+.panel h3 { font-size: 16px; font-weight: 700; }
+.panel .hint { margin: -8px 0 0; color: var(--muted); font-size: 13px; }
+.scroll { overflow-x: auto; margin-inline: -4px; padding-inline: 4px; }
+table.cov { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 580px; font-variant-numeric: tabular-nums; }
+table.cov th, table.cov td { padding: 10px; border-bottom: 1px solid var(--line); text-align: center; }
+table.cov th:first-child, table.cov td:first-child { text-align: left; }
+table.cov thead th { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; color: var(--faint); font-weight: 600; }
+table.cov tbody tr:hover td { background: var(--surface-2); }
+table.cov td:first-child { font-weight: 600; }
+.cell { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 7px; }
+.cell.main { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line); }
+.cell.sec { border: 1px solid var(--line-strong); color: var(--fg); }
+.cell.pool { color: var(--muted); }
+.cell.none { color: var(--faint); opacity: .6; }
+table.cov tfoot td { border-bottom: 0; padding-top: 12px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.depth { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.depth-col { display: grid; gap: 7px; align-content: start; min-width: 0; padding: 12px; border-radius: var(--r); background: var(--surface-2); }
+.depth-col header { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.depth-col header .count { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+.depth-item { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 13px; min-width: 0; }
+.depth-item > span:first-child { display: inline-flex; align-items: center; gap: 7px; min-width: 0; overflow: hidden; white-space: nowrap; }
+.depth-item .by { color: var(--faint); font-size: 11.5px; white-space: nowrap; }
+.tdot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; vertical-align: 0; border: 1.5px solid var(--muted); }
+.tdot.main { background: var(--accent); border-color: var(--accent); }
+.tdot.pocket { border-style: dashed; }
+.tdot.learning { border-color: var(--faint); border-style: dotted; }
+.flag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+.flag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.flag.warn { background: var(--warn-soft); color: var(--warn); }
+.flag.bad { background: var(--bad-soft); color: var(--bad); }
+.flag.good { background: var(--good-soft); color: var(--good); }
+.depth-col .flag { justify-self: start; white-space: normal; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.list li { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13.5px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.list li:first-child { padding-top: 0; }
+.list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.list .count { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); text-align: right; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Comps */
+.comps { display: grid; gap: 18px; }
+.comp { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); display: grid; min-width: 0; overflow: hidden; }
+.comp-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 18px 18px 14px; flex-wrap: wrap; }
+.comp-head > div { display: grid; gap: 6px; min-width: 0; }
+.comp-head h3 { font-size: 22px; font-weight: 700; overflow-wrap: anywhere; }
+.arch { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.picks { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--line); border-block: 1px solid var(--line); }
+.pick { padding: 14px; display: grid; gap: 6px; align-content: start; min-width: 0; background: var(--surface); }
+.pick .champ { font-family: var(--font-display); font-size: 16px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.pick .champ.empty-pick { color: var(--faint); font-weight: 500; }
+.pick .player { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pick .dmg { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .08em; }
+.dmg.P { color: var(--ad); } .dmg.M { color: var(--ap); } .dmg.X { color: var(--muted); }
+.pick .pf { font-size: 11.5px; line-height: 1.35; display: inline-flex; gap: 5px; align-items: baseline; }
+.pick .pf::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; transform: translateY(-1px); }
+.pf.warn { color: var(--warn); } .pf.bad { color: var(--bad); } .pf.good { color: var(--good); }
+.comp-body { padding: 16px 18px 18px; display: grid; gap: 16px; }
+.profile { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; }
+.dbar { height: 8px; border-radius: 999px; overflow: hidden; display: flex; gap: 2px; background: var(--surface-3); }
+.dbar span { display: block; height: 100%; border-radius: 999px; }
+.dbar .ad { background: var(--ad); } .dbar .ap { background: var(--ap); }
+.dlegend { display: flex; gap: 14px; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.dlegend b { font-weight: 600; }
+.dlegend .a { color: var(--ad); } .dlegend .p { color: var(--ap); }
+.flags { display: flex; flex-wrap: wrap; gap: 6px; }
+.plan { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.plan > div { padding: 12px 14px; border-radius: var(--r); background: var(--surface-2); min-width: 0; }
+.plan p { margin: 6px 0 0; font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.plan p.na { color: var(--faint); }
+
+/* Champion portraits */
+.ci { width: 18px; height: 18px; border-radius: 50%; flex: none; display: inline-grid; place-items: center; overflow: hidden; background: var(--surface-3); border: 1px solid var(--line-strong); font-family: var(--font-mono); font-size: 7.5px; font-weight: 600; color: var(--muted); letter-spacing: 0; line-height: 1; vertical-align: middle; }
+.ci img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.14); }
+.ci.has-img { border-color: transparent; background: transparent; }
+.ci.lg { width: 48px; height: 48px; border-radius: 12px; font-size: 13px; box-shadow: 0 0 0 1px var(--line-strong); }
+.ci.md { width: 22px; height: 22px; font-size: 8.5px; }
+.chip.learning .ci img { opacity: .55; filter: grayscale(.4); }
+.chip:has(.ci) { padding-left: 3px; }
+.champ-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.champ-row .champ { min-width: 0; }
+
+/* Sheet (editor drawer) */
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 50; display: flex; justify-content: flex-end; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.sheet { width: min(660px, 100%); height: 100%; background: var(--surface); border-left: 1px solid var(--line-strong); display: grid; grid-template-rows: auto 1fr auto; box-shadow: -24px 0 60px -20px rgba(0,0,0,.5); border-radius: var(--r-lg) 0 0 var(--r-lg); overflow: hidden; }
+.sheet-head { padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 14px 22px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sheet-head h2 { font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+.sheet-body { overflow-y: auto; padding: 20px max(22px, env(safe-area-inset-right, 0px)) 28px 22px; display: grid; gap: 14px; align-content: start; overscroll-behavior: contain; }
+.sheet-foot { padding: 14px max(22px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) 22px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--surface); }
+.sheet-foot .right { display: flex; gap: 8px; margin-left: auto; }
+fieldset { border: 1px solid var(--line); border-radius: var(--r); margin: 0; padding: 14px 16px 16px; display: grid; gap: 12px; min-width: 0; background: var(--surface-2); }
+legend { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); padding: 0 6px; margin-left: -6px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.f input, .f select, .f textarea, .crow input, .crow select, .prow input, .prow select { width: 100%; min-width: 0; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 9px; padding: 9px 11px; transition: border-color .15s, box-shadow .15s; }
+.f input::placeholder, .f textarea::placeholder, .crow input::placeholder, .prow input::placeholder { color: var(--faint); }
+.f textarea { resize: vertical; min-height: 76px; }
+.f input:focus, .f select:focus, .f textarea:focus, .crow input:focus, .crow select:focus, .prow input:focus, .prow select:focus { outline: none; border-color: var(--hex); box-shadow: 0 0 0 3px color-mix(in srgb, var(--hex) 22%, transparent); }
+.frow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px; }
+.checks label { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 9px; padding: 6px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; transition: border-color .15s, background .15s; }
+.checks label:has(input:checked) { border-color: var(--accent-line); background: var(--accent-soft); color: var(--fg); }
+.checks input { accent-color: var(--accent); margin: 0; }
+.crow { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.crows { display: grid; gap: 6px; }
+.crows:empty { display: none; }
+.prow { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.3fr); gap: 10px; align-items: center; }
+.prow .sugs { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px; }
+.prow .sugs:empty { display: none; }
+.prow .sugs .chip { font-size: 11.5px; padding: 2px 8px; }
+.prow-wrap { display: grid; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.prow-wrap:last-child { border-bottom: 0; padding-bottom: 0; }
+.quick { display: flex; flex-wrap: wrap; gap: 5px; }
+.quick .chip { font-size: 11.5px; padding: 3px 9px; color: var(--muted); }
+.quick .chip:hover { color: var(--fg); }
+.formhint { font-size: 12.5px; color: var(--muted); margin: 0; }
+.confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+
+/* Toast */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); display: inline-flex; align-items: center; gap: 10px; background: var(--surface-3); color: var(--fg); border: 1px solid var(--line-strong); padding: 10px 16px 10px 12px; border-radius: 12px; font-size: 13.5px; font-weight: 500; z-index: 80; max-width: calc(100% - 32px); box-shadow: var(--shadow-lift); }
+.toast svg { color: var(--good); }
+.toast[hidden] { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .toast:not([hidden]) { animation: toastin .28s var(--ease); }
+  @keyframes toastin { from { transform: translate(-50%, 12px); opacity: 0; } }
+  .scrim { animation: fadein .2s ease-out; }
+  .sheet { animation: slidein .32s var(--ease); }
+  @keyframes fadein { from { opacity: 0; } }
+  @keyframes slidein { from { transform: translateX(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  #view:not(.settled) > * { animation: rise .35s var(--ease) both; }
+  @keyframes rise { from { transform: translateY(6px); } }
+}
+
+@media (max-width: 980px) {
+  .bar { grid-template-columns: minmax(0, 1fr) auto; row-gap: 10px; }
+  .tabs { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; }
+  .tabs a { flex: 1; justify-content: center; }
+}
+@media (max-width: 860px) {
+  .depth { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan { grid-template-columns: 1fr; }
+  .two { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .lineup, .skel .line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .picks { grid-template-columns: 1fr; }
+  .pick { grid-template-columns: 48px minmax(0, 1fr); column-gap: 12px; }
+  .pick > * { grid-column: 2; }
+  .pick > .role { grid-column: 1; grid-row: 1 / span 5; align-self: start; flex-direction: column; gap: 3px; width: 48px; justify-content: center; padding: 8px 0; }
+  .sheet { border-radius: 0; border-left: 0; }
+}
+@media (max-width: 480px) {
+  main .wrap { padding-block: 20px 64px; }
+  .grid { grid-template-columns: 1fr; }
+  .sw { grid-template-columns: 1fr; }
+  .depth { grid-template-columns: 1fr; }
+  .crow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+  .crow input { grid-column: 1 / -1; }
+  .prow { grid-template-columns: 44px minmax(0, 1fr); }
+  .prow input { grid-column: 2; }
+  .tier-row { grid-template-columns: 1fr; gap: 4px; }
+  .status { padding: 6px; } .status #statusText { display: none; }
+  .toolbar h2 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap bar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 20.5 7.4v9.2L12 21.5 3.5 16.6V7.4z"/><path d="M12 7.2 16.2 9.6v4.8L12 16.8 7.8 14.4V9.6z" fill="currentColor" fill-opacity=".25"/></svg></span>
+      <div class="brand-text">
+        <span class="eyebrow">Five-Stack Board</span>
+        <h1 class="teamname"><span id="teamName">Our Team</span><button class="iconbtn sm" id="renameBtn" type="button" aria-label="Rename team" title="Rename team"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></h1>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Views">
+      <a href="#roster" data-view="roster">Roster<span class="n" id="nPlayers"></span></a>
+      <a href="#team" data-view="team">Team map</a>
+      <a href="#comps" data-view="comps">Draft comps<span class="n" id="nComps"></span></a>
+    </nav>
+    <div class="hdr-right">
+      <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Connecting…</span></div>
+      <button class="btn small" id="codeBtn" type="button" hidden></button>
+    </div>
+  </div>
+</header>
+<main><div class="wrap" id="view"></div></main>
+<datalist id="champList"></datalist>
+<div id="overlay"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+"use strict";
+
+/* ---------- Game data ---------- */
+const ROLES = [
+  { k: "top", code: "TOP", name: "Top" },
+  { k: "jungle", code: "JGL", name: "Jungle" },
+  { k: "mid", code: "MID", name: "Mid" },
+  { k: "bot", code: "BOT", name: "Bot" },
+  { k: "support", code: "SUP", name: "Support" },
+];
+const ROLE = Object.fromEntries(ROLES.map(r => [r.k, r]));
+const SVG = (d) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const I = {
+  plus: SVG('<path d="M12 5v14M5 12h14"/>'),
+  edit: SVG('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
+  x: SVG('<path d="M18 6 6 18M6 6l12 12"/>'),
+  check: SVG('<path d="M20 6 9 17l-5-5"/>'),
+  users: SVG('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'),
+  swords: SVG('<path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/><path d="M9.5 6.5 6 3H3v3l3.5 3.5M5 14l4 4M7 17l-3 3M3 19l2 2"/>'),
+  info: SVG('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
+  note: SVG('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'),
+  key: SVG('<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14 9l2 2"/>'),
+  lock: SVG('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  trash: SVG('<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'),
+};
+function ri(k) { return ROLE[k] ? `<i class="ri" data-r="${k}" aria-hidden="true"></i>` : ""; }
+const TIERS = [
+  { k: "main", name: "Main", hint: "Scrim and clash ready" },
+  { k: "comfort", name: "Comfort", hint: "Solid, lots of games" },
+  { k: "pocket", name: "Pocket", hint: "Situational counterpick" },
+  { k: "learning", name: "Learning", hint: "Not draft-ready yet" },
+];
+const TIER = Object.fromEntries(TIERS.map(t => [t.k, t]));
+const RANKS = ["Unranked", "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger"];
+const DIVS = ["IV", "III", "II", "I"];
+const STYLES = ["Carry", "Playmaker", "Weakside", "Enabler", "Flexible"];
+const ARCHETYPES = [
+  { k: "engage", name: "Hard engage", hint: "Force fights on your terms" },
+  { k: "pick", name: "Pick", hint: "Catch someone, then take objectives" },
+  { k: "poke", name: "Poke / siege", hint: "Chip them down before fights" },
+  { k: "protect", name: "Protect the carry", hint: "Front-to-back, peel your hypercarry" },
+  { k: "split", name: "Split push", hint: "1-3-1 or 1-4 side-lane pressure" },
+  { k: "skirmish", name: "Skirmish", hint: "Early 2v2s and river fights" },
+  { k: "scaling", name: "Scaling", hint: "Survive early, win late" },
+];
+const ARCH = Object.fromEntries(ARCHETYPES.map(a => [a.k, a]));
+const STRENGTH_TAGS = ["Laning", "Teamfighting", "Roaming", "Vision control", "Shotcalling", "Mechanics", "Wave management", "Early game", "Scaling", "Objective setup", "Map awareness", "Communication", "Tilt resistance", "Wide champion pool"];
+const WEAK_TAGS = ["Overextends", "Low vision score", "Tilts easily", "Weak vs. ganks", "Small champion pool", "Passive laning", "Late rotations", "Teamfight positioning", "Coinflip plays", "Quiet on comms", "Falls off late", "Overforces"];
+
+// Name : damage (P physical, M magic, X mixed) + T for frontline/tank
+const CHAMP_RAW = "Aatrox:P;Ahri:M;Akali:M;Akshan:P;Alistar:MT;Ambessa:P;Amumu:MT;Anivia:M;Annie:M;Aphelios:P;Ashe:P;Aurelion Sol:M;Aurora:M;Azir:M;Bard:M;Bel'Veth:P;Blitzcrank:MT;Brand:M;Braum:MT;Briar:P;Caitlyn:P;Camille:P;Cassiopeia:M;Cho'Gath:MT;Corki:X;Darius:P;Diana:M;Dr. Mundo:XT;Draven:P;Ekko:M;Elise:M;Evelynn:M;Ezreal:P;Fiddlesticks:M;Fiora:P;Fizz:M;Galio:MT;Gangplank:P;Garen:P;Gnar:PT;Gragas:MT;Graves:P;Gwen:M;Hecarim:P;Heimerdinger:M;Hwei:M;Illaoi:P;Irelia:P;Ivern:M;Janna:M;Jarvan IV:PT;Jax:X;Jayce:P;Jhin:P;Jinx:P;K'Sante:PT;Kai'Sa:X;Kalista:P;Karma:M;Karthus:M;Kassadin:M;Katarina:X;Kayle:X;Kayn:P;Kennen:M;Kha'Zix:P;Kindred:P;Kled:P;Kog'Maw:X;LeBlanc:M;Lee Sin:P;Leona:MT;Lillia:M;Lissandra:M;Lucian:P;Lulu:M;Lux:M;Malphite:MT;Malzahar:M;Maokai:MT;Master Yi:P;Mel:M;Milio:M;Miss Fortune:P;Mordekaiser:M;Morgana:M;Naafiri:P;Nami:M;Nasus:P;Nautilus:MT;Neeko:M;Nidalee:M;Nilah:P;Nocturne:P;Nunu & Willump:MT;Olaf:P;Orianna:M;Ornn:XT;Pantheon:P;Poppy:PT;Pyke:P;Qiyana:P;Quinn:P;Rakan:M;Rammus:MT;Rek'Sai:P;Rell:MT;Renata Glasc:M;Renekton:P;Rengar:P;Riven:P;Rumble:M;Ryze:M;Samira:P;Sejuani:MT;Senna:P;Seraphine:M;Sett:PT;Shaco:X;Shen:XT;Shyvana:X;Singed:MT;Sion:PT;Sivir:P;Skarner:PT;Smolder:P;Sona:M;Soraka:M;Swain:M;Sylas:M;Syndra:M;Tahm Kench:MT;Taliyah:M;Talon:P;Taric:MT;Teemo:M;Thresh:MT;Tristana:P;Trundle:PT;Tryndamere:P;Twisted Fate:M;Twitch:P;Udyr:XT;Urgot:P;Varus:P;Vayne:P;Veigar:M;Vel'Koz:M;Vex:M;Vi:P;Viego:P;Viktor:M;Vladimir:M;Volibear:XT;Warwick:X;Wukong:P;Xayah:P;Xerath:M;Xin Zhao:P;Yasuo:P;Yone:P;Yorick:P;Yunara:P;Yuumi:M;Zac:MT;Zed:P;Zeri:P;Ziggs:M;Zilean:M;Zoe:M;Zyra:M";
+const CHAMPS = new Map();
+CHAMP_RAW.split(";").forEach(e => { const [n, c] = e.split(":"); CHAMPS.set(n.toLowerCase(), { name: n, d: c[0], t: c.includes("T") }); });
+const DMG_LABEL = { P: "AD", M: "AP", X: "MIXED" };
+document.getElementById("champList").innerHTML = [...CHAMPS.values()].map(c => `<option value="${esc(c.name)}"></option>`).join("");
+
+const EXAMPLE = {
+  meta: { teamName: "Our Team" },
+  players: [
+    { id: "ex-p1", example: true, name: "Rook", ign: "Rook#EUW", rank: "Emerald", div: "II", primaryRole: "top", secondaryRoles: ["jungle"], style: "Weakside",
+      champions: [{ champ: "Ornn", role: "top", tier: "main" }, { champ: "K'Sante", role: "top", tier: "comfort" }, { champ: "Gnar", role: "top", tier: "comfort" }, { champ: "Sejuani", role: "jungle", tier: "pocket" }, { champ: "Aatrox", role: "top", tier: "learning" }],
+      strengths: ["Weakside laning", "Teamfighting", "Tilt resistance"], weaknesses: ["Few carry champions", "Late TP rotations"],
+      notes: "Happy to go even on a tank while we play around bot side." },
+    { id: "ex-p2", example: true, name: "Moss", ign: "Moss#EUW", rank: "Diamond", div: "IV", primaryRole: "jungle", secondaryRoles: ["support"], style: "Playmaker",
+      champions: [{ champ: "Vi", role: "jungle", tier: "main" }, { champ: "Xin Zhao", role: "jungle", tier: "main" }, { champ: "Lee Sin", role: "jungle", tier: "comfort" }, { champ: "Sejuani", role: "jungle", tier: "comfort" }, { champ: "Lillia", role: "jungle", tier: "pocket" }],
+      strengths: ["Early game", "Objective setup", "Shotcalling"], weaknesses: ["Overforces invades", "Low vision score"], notes: "" },
+    { id: "ex-p3", example: true, name: "Kestrel", ign: "Kestrel#EUW", rank: "Emerald", div: "I", primaryRole: "mid", secondaryRoles: ["top"], style: "Carry",
+      champions: [{ champ: "Orianna", role: "mid", tier: "main" }, { champ: "Ahri", role: "mid", tier: "main" }, { champ: "Syndra", role: "mid", tier: "comfort" }, { champ: "Taliyah", role: "mid", tier: "pocket" }, { champ: "Sylas", role: "mid", tier: "learning" }],
+      strengths: ["Mechanics", "Roaming", "Wave management"], weaknesses: ["Tilts after early deaths", "Weak vs. assassins"], notes: "Wants jungle attention for the first two waves on Orianna." },
+    { id: "ex-p4", example: true, name: "Vane", ign: "Vane#EUW", rank: "Diamond", div: "IV", primaryRole: "bot", secondaryRoles: ["mid"], style: "Carry",
+      champions: [{ champ: "Jinx", role: "bot", tier: "main" }, { champ: "Kai'Sa", role: "bot", tier: "main" }, { champ: "Ezreal", role: "bot", tier: "comfort" }, { champ: "Varus", role: "bot", tier: "comfort" }, { champ: "Ashe", role: "bot", tier: "pocket" }],
+      strengths: ["Teamfight positioning", "Scaling"], weaknesses: ["Passive laning", "Quiet on comms"], notes: "" },
+    { id: "ex-p5", example: true, name: "Pell", ign: "Pell#EUW", rank: "Emerald", div: "III", primaryRole: "support", secondaryRoles: ["jungle"], style: "Enabler",
+      champions: [{ champ: "Nautilus", role: "support", tier: "main" }, { champ: "Rakan", role: "support", tier: "main" }, { champ: "Lulu", role: "support", tier: "comfort" }, { champ: "Braum", role: "support", tier: "comfort" }, { champ: "Thresh", role: "support", tier: "learning" }],
+      strengths: ["Vision control", "Engage timing", "Communication"], weaknesses: ["Roams too early", "Small enchanter pool"], notes: "" },
+  ],
+  comps: [
+    { id: "ex-c1", example: true, name: "Dive bot", archetype: "engage",
+      picks: { top: { champ: "Ornn", playerId: "ex-p1" }, jungle: { champ: "Vi", playerId: "ex-p2" }, mid: { champ: "Orianna", playerId: "ex-p3" }, bot: { champ: "Kai'Sa", playerId: "ex-p4" }, support: { champ: "Rakan", playerId: "ex-p5" } },
+      winCondition: "Group for second dragon. Vi ult or Rakan engage onto their carry, Orianna shockwave follows.", weakAgainst: "Disengage and peel (Janna, Gragas). Long poke before objectives.", bans: "Janna, Poppy, Ziggs", notes: "" },
+    { id: "ex-c2", example: true, name: "Front-to-back Jinx", archetype: "protect",
+      picks: { top: { champ: "K'Sante", playerId: "ex-p1" }, jungle: { champ: "Jarvan IV", playerId: "ex-p2" }, mid: { champ: "Syndra", playerId: "ex-p3" }, bot: { champ: "Jinx", playerId: "ex-p4" }, support: { champ: "Lulu", playerId: "ex-p5" } },
+      winCondition: "Reach three items on Jinx. K'Sante and Lulu peel, fight around Baron once vision is set.", weakAgainst: "Early dive and invades before 15 minutes.", bans: "Draven, Nilah, Vi", notes: "Jarvan IV is a placeholder until Moss practises him." },
+  ],
+};
+
+/* ---------- State ---------- */
+const S = { roleFilter: "all", mode: "loading", players: [], comps: [], meta: {}, loaded: { players: false, comps: false }, readOnly: false, stale: false, view: "roster", error: "" };
+let db = null;
+const LS_KEY = "five-stack-board-v1";
+
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function uid(prefix) { return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function champInfo(name) { return name ? CHAMPS.get(String(name).trim().toLowerCase()) : null; }
+function champName(name) { const c = champInfo(name); return c ? c.name : String(name || "").trim(); }
+let ICONS = {};
+function initials(name) { const w = String(name || "").split(/[^A-Za-z0-9]+/).filter(Boolean); if (!w.length) return "?"; return (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)).toUpperCase(); }
+function champIcon(name, size) {
+  const n = champName(name); if (!n) return "";
+  const src = ICONS[n.toLowerCase()];
+  const cls = "ci" + (size ? " " + size : "") + (src ? " has-img" : "");
+  return src ? `<span class="${cls}"><img src="${esc(src)}" alt="" loading="lazy"></span>` : `<span class="${cls}" aria-hidden="true">${esc(initials(n))}</span>`;
+}
+function playerById(id) { return S.players.find(p => p.id === id); }
+function roleIdx(k) { const i = ROLES.findIndex(r => r.k === k); return i < 0 ? 9 : i; }
+function sortedPlayers() { return [...S.players].sort((a, b) => roleIdx(a.primaryRole) - roleIdx(b.primaryRole) || String(a.name).localeCompare(b.name)); }
+function rankText(p) { if (!p.rank || p.rank === "Unranked") return p.rank ? "Unranked" : ""; return ["Master", "Grandmaster", "Challenger"].includes(p.rank) || !p.div ? p.rank : p.rank + " " + p.div; }
+function lines(s) { return String(s || "").split("\n").map(x => x.trim()).filter(Boolean); }
+
+let toastTimer;
+function toast(msg) { const t = document.getElementById("toast"); t.hidden = true; t.innerHTML = I.check + `<span>${esc(msg)}</span>`; void t.offsetWidth; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200); }
+
+/* ---------- Storage ---------- */
+function localLoad() {
+  try { const raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+  return null;
+}
+function localPersist() { try { localStorage.setItem(LS_KEY, JSON.stringify({ players: S.players, comps: S.comps, meta: S.meta })); } catch (e) {} }
+
+function startLocal() {
+  const d = localLoad() || JSON.parse(JSON.stringify(EXAMPLE));
+  S.mode = "local"; S.players = d.players || []; S.comps = d.comps || []; S.meta = d.meta || {};
+  S.loaded = { players: true, comps: true };
+  render();
+}
+
+function startDb() {
+  S.mode = "db";
+  const timer = setTimeout(() => { S.stale = true; render(); }, 10000);
+  const done = () => { if (S.loaded.players && S.loaded.comps) { clearTimeout(timer); S.stale = false; } };
+  const onErr = (e) => { clearTimeout(timer); S.error = "The team data can't be reached right now. Reopen the page to try again."; S.loaded.players = S.loaded.comps = true; render(); };
+  db.collection("players").onSnapshot(snap => {
+    S.players = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+    if (!snap.metadata.fromCache) S.loaded.players = true; else if (snap.size) S.loaded.players = true;
+    done(); render();
+  }, onErr);
+  db.collection("comps").onSnapshot(snap => {
+    S.comps = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+    if (!snap.metadata.fromCache || snap.size) S.loaded.comps = true;
+    done(); render();
+  }, onErr);
+  db.doc("team/meta").onSnapshot(snap => { S.meta = snap.exists ? { ...snap.data() } : {}; renderHeader(); }, () => {});
+}
+
+/* ---------- Vercel API mode ---------- */
+const API = "/api/board";
+const CODE_KEY = "five-stack-board-team-code";
+let apiVersion = null, pollTimer = null;
+function getCode() { try { return localStorage.getItem(CODE_KEY) || ""; } catch (e) { return S.code || ""; } }
+function setCode(c) { S.code = c; try { if (c) localStorage.setItem(CODE_KEY, c); else localStorage.removeItem(CODE_KEY); } catch (e) {} }
+
+async function apiFetch(force) {
+  const r = await fetch(API + (apiVersion != null && !force ? `?since=${apiVersion}` : ""), { cache: "no-store" });
+  let j = null; try { j = await r.json(); } catch (e) {}
+  if (r.status === 503 && j && j.error) { S.error = j.error; render(); return; }
+  if (!r.ok || !j) throw new Error("HTTP " + r.status);
+  if (j.unchanged) return;
+  apiVersion = j.version; S.players = j.players || []; S.comps = j.comps || []; S.meta = j.meta || {};
+  S.loaded = { players: true, comps: true }; S.stale = false; S.error = "";
+  render();
+}
+async function poll(force) {
+  clearTimeout(pollTimer);
+  try { await apiFetch(force); if (S.stale) { S.stale = false; render(); } }
+  catch (e) { S.stale = true; render(); }
+  if (!document.hidden && !S.error) pollTimer = setTimeout(poll, 4000);
+}
+function startApi() {
+  S.mode = "api"; S.readOnly = !getCode();
+  render(); poll(true);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
+}
+async function apiWrite(body) {
+  const code = getCode();
+  if (!code) { S.readOnly = true; render(); toast("Enter the team code to make changes."); return false; }
+  let r;
+  try { r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json", "x-team-code": code }, body: JSON.stringify(body) }); }
+  catch (e) { toast("Couldn't save. Check your connection and try again."); poll(true); return false; }
+  let j = null; try { j = await r.json(); } catch (e) {}
+  if (r.status === 401) { setCode(""); S.readOnly = true; poll(true); toast("The team code has changed. Close this, then unlock editing with the new code."); return false; }
+  if (!r.ok) { toast((j && j.error) || "Couldn't save. Try again in a moment."); poll(true); return false; }
+  poll(true); return true;
+}
+function openCodeSheet() {
+  openSheet("Unlock editing", `<p class="formhint">Anyone with the link can view the board. To add or change players and comps, enter your team's code. This device remembers it.</p>
+    <label class="f"><span>Team code</span><input id="teamCode" name="tcode" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required placeholder="Ask your captain"></label>`, {
+    onSubmit: async (f) => {
+      const code = f.tcode.value.trim();
+      if (!code) { toast("Enter the team code first."); return false; }
+      let r; try { r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json", "x-team-code": code }, body: JSON.stringify({ action: "verify" }) }); }
+      catch (e) { toast("Couldn't check the code. Check your connection and try again."); return false; }
+      if (r.status === 401) { toast("That team code isn't right."); f.tcode.select(); return false; }
+      if (!r.ok) { let j = null; try { j = await r.json(); } catch (e) {} toast((j && j.error) || "Couldn't check the code. Try again in a moment."); return false; }
+      setCode(code); S.readOnly = false; render(); toast("Editing unlocked"); return true;
+    },
+  });
+  const b = document.getElementById("saveBtn"); if (b) b.textContent = "Unlock";
+}
+
+function handleWriteError(e) {
+  const code = e && e.code;
+  if (code === "invalid_argument") { S.readOnly = true; render(); toast("You have view-only access, so changes can't be saved."); }
+  else if (code === "quota_exceeded") toast("The board is full. Delete some players or comps, then try again.");
+  else if (code === "resource_exhausted") toast("Too many saves at once. Wait a moment, then save again.");
+  else toast("Couldn't save. Check your connection and try again.");
+}
+
+async function writeDoc(col, id, data) {
+  const clean = JSON.parse(JSON.stringify(data)); delete clean.id;
+  clean.updatedAt = new Date().toISOString();
+  if (S.mode === "db") {
+    try { await db.collection(col).doc(id).set(clean); return true; }
+    catch (e) { if (e && e.code === "unavailable") { await new Promise(r => setTimeout(r, 600 + Math.random() * 600)); try { await db.collection(col).doc(id).set(clean); return true; } catch (e2) { handleWriteError(e2); return false; } } handleWriteError(e); return false; }
+  }
+  const list = col === "players" ? S.players : S.comps;
+  const i = list.findIndex(x => x.id === id); const row = { ...clean, id };
+  if (S.mode === "api") { const ok = await apiWrite({ action: "set", col, id, data: clean }); if (ok) { if (i >= 0) list[i] = row; else list.push(row); render(); } return ok; }
+  if (i >= 0) list[i] = row; else list.push(row);
+  localPersist(); render(); return true;
+}
+async function deleteDoc(col, id) {
+  if (S.mode === "db") { try { await db.collection(col).doc(id).delete(); return true; } catch (e) { handleWriteError(e); return false; } }
+  if (S.mode === "api") { const ok = await apiWrite({ action: "delete", col, id }); if (ok) { if (col === "players") S.players = S.players.filter(x => x.id !== id); else S.comps = S.comps.filter(x => x.id !== id); render(); } return ok; }
+  if (col === "players") S.players = S.players.filter(x => x.id !== id); else S.comps = S.comps.filter(x => x.id !== id);
+  localPersist(); render(); return true;
+}
+async function saveMeta(meta) {
+  S.meta = { ...S.meta, ...meta };
+  if (S.mode === "db") { try { await db.doc("team/meta").set(S.meta); } catch (e) { handleWriteError(e); } }
+  else if (S.mode === "api") { if (!(await apiWrite({ action: "meta", data: { teamName: S.meta.teamName } }))) return false; }
+  else localPersist();
+  renderHeader();
+}
+async function loadExamples() {
+  for (const p of EXAMPLE.players) { if (!(await writeDoc("players", p.id, p))) return; }
+  for (const c of EXAMPLE.comps) { if (!(await writeDoc("comps", c.id, c))) return; }
+  toast("Example team loaded");
+}
+async function clearExamples() {
+  const ex = [...S.players.filter(p => p.example).map(p => ["players", p.id]), ...S.comps.filter(c => c.example).map(c => ["comps", c.id])];
+  for (const [col, id] of ex) { if (!(await deleteDoc(col, id))) return; }
+  toast("Examples cleared");
+}
+
+/* ---------- Analysis ---------- */
+function poolHas(p, champ) { const n = champName(champ).toLowerCase(); return (p.champions || []).find(c => champName(c.champ).toLowerCase() === n); }
+
+function compStats(comp) {
+  let ad = 0, ap = 0, front = 0, known = 0, filled = 0;
+  const flags = [];
+  const perPick = {};
+  for (const r of ROLES) {
+    const pk = (comp.picks || {})[r.k] || {};
+    const info = champInfo(pk.champ);
+    const out = { info, note: null };
+    if (pk.champ) filled++;
+    if (info) { known++; if (info.d === "P") ad += 1; else if (info.d === "M") ap += 1; else { ad += .5; ap += .5; } if (info.t) front++; }
+    const pl = pk.playerId ? playerById(pk.playerId) : null;
+    if (pk.champ && pl) {
+      const entry = poolHas(pl, pk.champ);
+      if (!entry) out.note = { cls: "bad", text: `Not in ${pl.name}'s pool` };
+      else if (entry.tier === "learning") out.note = { cls: "warn", text: `${pl.name} is still learning this` };
+      else if (entry.tier === "pocket") out.note = { cls: "warn", text: "Pocket pick" };
+      else out.note = { cls: "good", text: TIER[entry.tier]?.name + " pick" };
+      if (pl.primaryRole !== r.k && !(pl.secondaryRoles || []).includes(r.k)) flags.push({ cls: "warn", text: `${pl.name} is off-role at ${r.code}` });
+    } else if (pk.champ && !pk.playerId) out.note = { cls: "warn", text: "No player assigned" };
+    perPick[r.k] = out;
+  }
+  const ids = ROLES.map(r => ((comp.picks || {})[r.k] || {}).playerId).filter(Boolean);
+  const dup = ids.filter((id, i) => ids.indexOf(id) !== i);
+  [...new Set(dup)].forEach(id => { const p = playerById(id); if (p) flags.push({ cls: "bad", text: `${p.name} is assigned twice` }); });
+  const total = ad + ap;
+  if (known >= 4) {
+    if (ap / total < 0.25) flags.push({ cls: "warn", text: "Almost all AD: easy for them to stack armor" });
+    else if (ad / total < 0.25) flags.push({ cls: "warn", text: "Almost all AP: easy for them to stack magic resist" });
+    if (front === 0) flags.push({ cls: "bad", text: "No frontline" });
+  }
+  if (filled < 5) flags.push({ cls: "warn", text: `${5 - filled} pick${5 - filled === 1 ? "" : "s"} open` });
+  const pickIssues = Object.values(perPick).some(x => x.note && x.note.cls !== "good");
+  if (!flags.length && !pickIssues && filled === 5) flags.push({ cls: "good", text: "Balanced damage, everyone on a practised pick" });
+  return { ad, ap, total, front, perPick, flags };
+}
+
+/* ---------- Rendering ---------- */
+function renderHeader() {
+  document.getElementById("teamName").textContent = S.meta.teamName || "Our Team";
+  document.getElementById("renameBtn").hidden = S.readOnly;
+  const st = document.getElementById("status"), tx = document.getElementById("statusText");
+  st.className = "status";
+  if (S.mode === "loading") tx.textContent = "Connecting…";
+  else if (S.mode === "local") { st.classList.add("local"); tx.textContent = "Saved in this browser only"; }
+  else if (S.mode === "api") { if (S.stale) { st.classList.add("local"); tx.textContent = "Reconnecting…"; } else if (S.readOnly) { st.classList.add("ro"); tx.textContent = "View only"; } else tx.textContent = "Live with your team"; }
+  else if (S.readOnly) { st.classList.add("ro"); tx.textContent = "View only"; }
+  else tx.textContent = S.stale ? "Can't reach the board yet; showing what's loaded" : "Shared live with everyone on this page";
+  const cb = document.getElementById("codeBtn");
+  cb.hidden = S.mode !== "api" || !!S.error;
+  if (S.mode === "api") {
+    if (S.readOnly) { cb.className = "btn small primary"; cb.innerHTML = I.key + "<span>Unlock editing</span>"; cb.removeAttribute("aria-label"); cb.title = ""; }
+    else { cb.className = "iconbtn"; cb.innerHTML = I.lock; cb.setAttribute("aria-label", "Lock editing on this device"); cb.title = "Lock editing on this device"; }
+  }
+  document.getElementById("nPlayers").textContent = S.players.length ? S.players.length : "";
+  document.getElementById("nComps").textContent = S.comps.length ? S.comps.length : "";
+  document.querySelectorAll(".tabs a").forEach(a => { if (a.dataset.view === S.view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+}
+
+function render() {
+  renderHeader();
+  const v = document.getElementById("view");
+  const ready = S.loaded.players && S.loaded.comps;
+  if (S.error) { v.innerHTML = `<div class="banner warn">${esc(S.error)}</div>`; return; }
+  if (!ready) { v.innerHTML = `<div class="skel" aria-busy="true"><span class="skel-note">${S.stale ? "The team data can't be reached yet. It will appear here as soon as it loads." : "Loading your roster and draft comps…"}</span><div class="line">${'<div class="sk slot-sk"></div>'.repeat(5)}</div><div class="grid">${'<div class="sk card-sk"></div>'.repeat(3)}</div></div>`; return; }
+  const hasEx = S.players.some(p => p.example) || S.comps.some(c => c.example);
+  const exBanner = hasEx && !S.readOnly ? `<div class="banner"><span>${I.info}<span>You're looking at an <b>example team</b>. Add your own teammates, then clear the examples.</span></span><button class="btn small" data-act="clear-ex" type="button">Clear examples</button></div>` : "";
+  let body = "";
+  if (S.view === "team") body = viewTeam(); else if (S.view === "comps") body = viewComps(); else body = viewRoster();
+  v.innerHTML = exBanner + body;
+  if (v.dataset.shown === S.view) v.classList.add("settled"); else { v.classList.remove("settled"); v.dataset.shown = S.view; }
+}
+
+function viewEmptyRoster() {
+  return `<div class="empty"><span class="ico">${I.users}</span><h3>No teammates yet</h3><p>Add each player with their roles, champion pool, and what they're good and bad at. Everything you add here is shared with everyone who opens this page.</p>
+  ${S.readOnly ? (S.mode === "api" ? `<div class="row"><button class="btn primary" data-act="unlock" type="button">${I.key}Unlock editing</button></div>` : "") : `<div class="row"><button class="btn primary" data-act="add-player" type="button">${I.plus}Add a teammate</button><button class="btn" data-act="load-ex" type="button">Load an example team</button></div>`}</div>`;
+}
+
+function lineupStrip() {
+  const ps = S.players;
+  return `<div class="lineup">${ROLES.map(r => {
+    const mains = ps.filter(p => p.primaryRole === r.k);
+    const subs = ps.filter(p => (p.secondaryRoles || []).includes(r.k) && p.primaryRole !== r.k);
+    if (!mains.length) return `<div class="slot open"><div class="slot-top"><span class="role">${ri(r.k)}${r.code}</span><span class="state bad" title="No main"></span></div><div class="who">Open</div><div class="meta">${subs.length ? "Can fill: " + esc(subs.map(s => s.name).join(", ")) : "Nobody plays this yet"}</div></div>`;
+    return `<div class="slot"><div class="slot-top"><span class="role">${ri(r.k)}${r.code}</span><span class="state${subs.length ? "" : " warn"}" title="${subs.length ? "Covered with backup" : "No backup"}"></span></div><div class="who">${esc(mains.map(m => m.name).join(" / "))}</div><div class="meta">${subs.length ? "Backup: " + esc(subs.map(s => s.name).join(", ")) : "No backup"}</div></div>`;
+  }).join("")}</div>`;
+}
+
+function viewRoster() {
+  const top = `<div class="toolbar"><div><h2>Roster</h2><p>Who plays what, how deep their pools go, and where they need cover.</p></div>${S.readOnly ? "" : `<div class="actions"><button class="btn primary" data-act="add-player" type="button">${I.plus}Add teammate</button></div>`}</div>`;
+  if (!S.players.length) return top + viewEmptyRoster();
+  const f = S.roleFilter;
+  const plays = (p, k) => p.primaryRole === k || (p.secondaryRoles || []).includes(k);
+  const shown = sortedPlayers().filter(p => f === "all" || plays(p, f));
+  const filters = `<div class="filters" role="group" aria-label="Filter by role"><button class="fchip" type="button" data-act="filter" data-val="all" aria-pressed="${f === "all"}">All <span class="c">${S.players.length}</span></button>${ROLES.map(r => `<button class="fchip" type="button" data-act="filter" data-val="${r.k}" aria-pressed="${f === r.k}">${ri(r.k)}${r.code} <span class="c">${S.players.filter(p => plays(p, r.k)).length}</span></button>`).join("")}</div>`;
+  return top + lineupStrip() + filters + (shown.length ? `<div class="grid">${shown.map(playerCard).join("")}</div>` : `<div class="empty"><h3>Nobody plays ${esc(ROLE[f]?.name || "this role")}</h3><p>No teammate has this as a main or backup role yet.</p></div>`);
+}
+
+function playerCard(p) {
+  const r = ROLE[p.primaryRole];
+  const secs = (p.secondaryRoles || []).filter(k => k !== p.primaryRole).map(k => ROLE[k]?.code).filter(Boolean);
+  const pool = TIERS.map(t => {
+    const cs = (p.champions || []).filter(c => (c.tier || "comfort") === t.k);
+    if (!cs.length) return "";
+    return `<div class="tier-row"><span class="label">${t.name}</span><div class="chips">${cs.map(c => `<span class="chip ${t.k}">${champIcon(c.champ)}${esc(champName(c.champ))}${c.role && c.role !== p.primaryRole && ROLE[c.role] ? `<small>${ROLE[c.role].code}</small>` : ""}</span>`).join("")}</div></div>`;
+  }).join("");
+  const li = (arr) => arr && arr.length ? arr.map(x => `<li>${esc(x)}</li>`).join("") : `<li class="none">None added</li>`;
+  const rk = rankText(p);
+  return `<article class="card">
+    <div class="card-head">
+      <span class="role big">${r ? ri(r.k) + r.code : "—"}</span>
+      <div><h3>${esc(p.name || "Unnamed")}${p.ign ? `<span class="ign">${esc(p.ign)}</span>` : ""}${p.example ? `<span class="tag-ex">Example</span>` : ""}</h3>
+        <div class="pills">${rk ? `<span class="pill rank" data-rk="${esc(String(p.rank || "").toLowerCase())}">${esc(rk)}</span>` : ""}${p.style ? `<span class="pill">${esc(p.style)}</span>` : ""}${secs.length ? `<span class="pill">Also ${secs.join(", ")}</span>` : ""}</div>
+      </div>
+      ${S.readOnly ? "" : `<button class="iconbtn" data-act="edit-player" data-id="${esc(p.id)}" type="button" aria-label="Edit ${esc(p.name)}" title="Edit">${I.edit}</button>`}
+    </div>
+    <div class="pool">${pool || `<span class="formhint">No champions added yet.</span>`}</div>
+    <div class="sw"><div><span class="label">Strengths</span><ul class="plus">${li(p.strengths)}</ul></div><div><span class="label">Weaknesses</span><ul class="minus">${li(p.weaknesses)}</ul></div></div>
+    ${p.notes ? `<p class="notes">${I.note}<span>${esc(p.notes)}</span></p>` : ""}
+  </article>`;
+}
+
+function viewTeam() {
+  const top = `<div class="toolbar"><div><h2>Team map</h2><p>Role coverage, champion depth per lane, and the patterns across the whole team.</p></div></div>`;
+  if (!S.players.length) return top + viewEmptyRoster();
+  const ps = sortedPlayers();
+  // Coverage table
+  const rows = ps.map(p => `<tr><td>${esc(p.name)}</td>${ROLES.map(r => {
+    const n = (p.champions || []).filter(c => c.role === r.k && c.tier !== "learning").length;
+    if (p.primaryRole === r.k) return `<td><span class="cell main">MAIN · ${n}</span></td>`;
+    if ((p.secondaryRoles || []).includes(r.k)) return `<td><span class="cell sec">SEC · ${n}</span></td>`;
+    if (n) return `<td><span class="cell pool">${n} champ${n > 1 ? "s" : ""}</span></td>`;
+    return `<td><span class="cell none">—</span></td>`;
+  }).join("")}</tr>`).join("");
+  const foot = `<tr><td>Cover</td>${ROLES.map(r => {
+    const m = ps.filter(p => p.primaryRole === r.k).length, s = ps.filter(p => (p.secondaryRoles || []).includes(r.k) && p.primaryRole !== r.k).length;
+    return `<td>${m ? "" : `<span class="flag bad">No main</span>`}${m && !s ? `<span class="flag warn">No backup</span>` : ""}${m && s ? `<span class="flag good">${m}+${s}</span>` : ""}</td>`;
+  }).join("")}</tr>`;
+  const coverage = `<section class="panel"><h3>Role coverage</h3><p class="hint">Number = draft-ready champions (main, comfort, or pocket) each player has for that role.</p>
+    <div class="scroll"><table class="cov"><thead><tr><th>Player</th>${ROLES.map(r => `<th>${ri(r.k)}${r.code}</th>`).join("")}</tr></thead><tbody>${rows}</tbody><tfoot>${foot}</tfoot></table></div></section>`;
+
+  // Depth
+  const depth = ROLES.map(r => {
+    const items = [];
+    ps.forEach(p => (p.champions || []).forEach(c => { if (c.role === r.k) items.push({ c, p }); }));
+    const order = { main: 0, comfort: 1, pocket: 2, learning: 3 };
+    items.sort((a, b) => (order[a.c.tier] ?? 1) - (order[b.c.tier] ?? 1) || champName(a.c.champ).localeCompare(champName(b.c.champ)));
+    const ready = items.filter(i => i.c.tier === "main" || i.c.tier === "comfort").length;
+    const flag = ready < 3 ? `<span class="flag ${ready === 0 ? "bad" : "warn"}">${ready === 0 ? "No reliable picks" : "Thin: easy to ban out"}</span>` : "";
+    return `<div class="depth-col"><header><span class="role">${ri(r.k)}${r.code}</span><span class="count">${ready} ready</span></header>${flag}
+      ${items.length ? items.map(i => `<div class="depth-item"><span><i class="tdot ${esc(i.c.tier)}"></i>${champIcon(i.c.champ, "md")}<span style="overflow:hidden;text-overflow:ellipsis;min-width:0">${esc(champName(i.c.champ))}</span></span><span class="by">${esc(i.p.name)}</span></div>`).join("") : `<span class="formhint">No champions</span>`}</div>`;
+  }).join("");
+  const depthPanel = `<section class="panel"><h3>Champion depth by role</h3><p class="hint">A role with fewer than three main or comfort picks can be banned out in draft.</p>
+    <div class="legend"><span><i class="tdot main"></i>Main</span><span><i class="tdot"></i>Comfort</span><span><i class="tdot pocket"></i>Pocket</span><span><i class="tdot learning"></i>Learning</span></div>
+    <div class="depth">${depth}</div></section>`;
+
+  // Shared champions
+  const byChamp = new Map();
+  ps.forEach(p => (p.champions || []).forEach(c => { const n = champName(c.champ); if (!n) return; const k = n.toLowerCase(); if (!byChamp.has(k)) byChamp.set(k, { name: n, entries: [] }); if (!byChamp.get(k).entries.some(e => e.p.id === p.id)) byChamp.get(k).entries.push({ p, c }); }));
+  const shared = [...byChamp.values()].filter(x => x.entries.length > 1);
+  const sharedPanel = `<section class="panel"><h3>Shared champions</h3><p class="hint">Champions in more than one pool. Across roles they're flex picks that hide your draft; in the same role, agree on who gets them.</p>
+    ${shared.length ? `<ul class="list">${shared.map(x => { const roles = new Set(x.entries.map(e => e.c.role)); return `<li><span class="champ-row" style="gap:7px">${champIcon(x.name, "md")}<span><b>${esc(x.name)}</b> · ${esc(x.entries.map(e => `${e.p.name} (${ROLE[e.c.role]?.code || "?"})`).join(", "))}</span></span><span class="flag ${roles.size > 1 ? "good" : "warn"}">${roles.size > 1 ? "Flex pick" : "Same role"}</span></li>`; }).join("")}</ul>` : `<span class="formhint">No overlapping champions yet.</span>`}</section>`;
+
+  // Damage spread of mains
+  let ad = 0, ap = 0, fr = 0, cnt = 0;
+  ps.forEach(p => (p.champions || []).forEach(c => { if (c.tier !== "main" && c.tier !== "comfort") return; const i = champInfo(c.champ); if (!i) return; cnt++; if (i.d === "P") ad++; else if (i.d === "M") ap++; else { ad += .5; ap += .5; } if (i.t) fr++; }));
+  const tot = ad + ap || 1;
+  const dmgPanel = `<section class="panel"><h3>Damage across reliable picks</h3><p class="hint">Main and comfort champions only. A lopsided team is easier to itemize against.</p>
+    <div class="profile"><div class="dbar"><span class="ad" style="width:${(ad / tot * 100).toFixed(1)}%"></span><span class="ap" style="width:${(ap / tot * 100).toFixed(1)}%"></span></div><span class="dlegend">${cnt} champs</span></div>
+    <div class="dlegend"><span class="a"><b>${Math.round(ad / tot * 100)}%</b> AD</span><span class="p"><b>${Math.round(ap / tot * 100)}%</b> AP</span><span><b>${fr}</b> frontline options</span></div></section>`;
+
+  // Tags
+  const tally = (key) => { const m = new Map(); ps.forEach(p => (p[key] || []).forEach(t => { const k = t.toLowerCase(); if (!m.has(k)) m.set(k, { t, who: [] }); m.get(k).who.push(p.name); })); return [...m.values()].sort((a, b) => b.who.length - a.who.length || a.t.localeCompare(b.t)); };
+  const tagList = (arr) => arr.length ? `<ul class="list">${arr.map(x => `<li><span>${esc(x.t)}</span><span class="count">${esc(x.who.join(", "))}</span></li>`).join("")}</ul>` : `<span class="formhint">Nothing added yet.</span>`;
+  const tagsPanel = `<div class="two"><section class="panel"><h3>Team strengths</h3>${tagList(tally("strengths"))}</section><section class="panel"><h3>Weaknesses to cover</h3>${tagList(tally("weaknesses"))}</section></div>`;
+
+  return top + coverage + depthPanel + `<div class="two">${sharedPanel}${dmgPanel}</div>` + tagsPanel;
+}
+
+function viewComps() {
+  const top = `<div class="toolbar"><div><h2>Draft comps</h2><p>Plan full five-player drafts. Each pick is checked against that player's pool, and the comp gets a damage and frontline read.</p></div>${S.readOnly ? "" : `<div class="actions"><button class="btn primary" data-act="add-comp" type="button">${I.plus}New comp</button></div>`}</div>`;
+  if (!S.comps.length) return top + `<div class="empty"><span class="ico">${I.swords}</span><h3>No comps yet</h3><p>A comp is five champions with a player on each, a win condition, and what it's weak against.${S.players.length ? "" : " Add your teammates first so each pick can be checked against their pool."}</p>${S.readOnly ? "" : `<div class="row"><button class="btn primary" data-act="add-comp" type="button">${I.plus}Plan a comp</button></div>`}</div>`;
+  const sorted = [...S.comps].sort((a, b) => String(a.name).localeCompare(b.name));
+  return top + `<div class="comps">${sorted.map(compCard).join("")}</div>`;
+}
+
+function compCard(c) {
+  const st = compStats(c);
+  const a = ARCH[c.archetype];
+  const picks = ROLES.map(r => {
+    const pk = (c.picks || {})[r.k] || {};
+    const pl = pk.playerId ? playerById(pk.playerId) : null;
+    const pp = st.perPick[r.k];
+    return `<div class="pick"><span class="role">${ri(r.k)}${r.code}</span>
+      <div class="champ-row">${pk.champ ? champIcon(pk.champ, "lg") : ""}<div class="champ ${pk.champ ? "" : "empty-pick"}">${pk.champ ? esc(champName(pk.champ)) : "Open"}</div></div>
+      <div class="player">${pl ? esc(pl.name) : (pk.playerId ? "Removed player" : "No player")}</div>
+      ${pp.info ? `<span class="dmg ${pp.info.d}">${DMG_LABEL[pp.info.d]}${pp.info.t ? " · FRONTLINE" : ""}</span>` : ""}
+      ${pp.note ? `<span class="pf ${pp.note.cls}">${esc(pp.note.text)}</span>` : ""}</div>`;
+  }).join("");
+  const tot = st.total || 1;
+  return `<article class="comp">
+    <div class="comp-head"><div style="min-width:0"><div class="arch">${a ? esc(a.name) : "No archetype"}${c.example ? `<span class="tag-ex">Example</span>` : ""}</div><h3>${esc(c.name || "Untitled comp")}</h3></div>
+      ${S.readOnly ? "" : `<button class="btn small" data-act="edit-comp" data-id="${esc(c.id)}" type="button">${I.edit}Edit</button>`}</div>
+    <div class="picks">${picks}</div>
+    <div class="comp-body">
+      <div class="profile"><div class="dbar" role="img" aria-label="Damage split ${Math.round(st.ad / tot * 100)}% AD, ${Math.round(st.ap / tot * 100)}% AP"><span class="ad" style="width:${(st.ad / tot * 100).toFixed(1)}%"></span><span class="ap" style="width:${(st.ap / tot * 100).toFixed(1)}%"></span></div>
+        <div class="dlegend"><span class="a"><b>${Math.round(st.ad / tot * 100)}%</b> AD</span><span class="p"><b>${Math.round(st.ap / tot * 100)}%</b> AP</span><span><b>${st.front}</b> frontline</span></div></div>
+      <div class="flags">${st.flags.map(f => `<span class="flag ${f.cls}">${esc(f.text)}</span>`).join("")}</div>
+      <div class="plan">
+        <div><span class="label">Win condition</span><p class="${c.winCondition ? "" : "na"}">${esc(c.winCondition || "Not written yet")}</p></div>
+        <div><span class="label">Weak against</span><p class="${c.weakAgainst ? "" : "na"}">${esc(c.weakAgainst || "Not written yet")}</p></div>
+        <div><span class="label">Target bans</span><p class="${c.bans ? "" : "na"}">${esc(c.bans || "None")}</p></div>
+      </div>
+      ${c.notes ? `<p class="notes">${esc(c.notes)}</p>` : ""}
+    </div></article>`;
+}
+
+/* ---------- Editors ---------- */
+const overlay = document.getElementById("overlay");
+let lastFocus = null;
+function openSheet(title, bodyHtml, { onSubmit, onDelete, deleteLabel }) {
+  lastFocus = document.activeElement;
+  overlay.innerHTML = `<div class="scrim" data-act="close-scrim"><form class="sheet" id="sheetForm" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" novalidate>
+    <div class="sheet-head"><h2 id="sheetTitle">${esc(title)}</h2><button class="iconbtn" type="button" data-act="close" aria-label="Close">${I.x}</button></div>
+    <div class="sheet-body">${bodyHtml}</div>
+    <div class="sheet-foot">${onDelete ? `<div class="confirm" id="delWrap"><button class="btn danger" type="button" id="delBtn">${I.trash}${esc(deleteLabel || "Delete")}</button></div>` : ""}
+      <div class="right"><button class="btn" type="button" data-act="close">Cancel</button><button class="btn primary" type="submit" id="saveBtn">Save</button></div></div>
+  </form></div>`;
+  document.documentElement.classList.add("locked");
+  const form = document.getElementById("sheetForm");
+  form.addEventListener("submit", async (e) => { e.preventDefault(); const b = document.getElementById("saveBtn"); b.disabled = true; b.textContent = "Saving…"; const ok = await onSubmit(form); if (ok !== false) closeSheet(); else { b.disabled = false; b.textContent = "Save"; } });
+  if (onDelete) {
+    document.getElementById("delBtn").addEventListener("click", () => {
+      const w = document.getElementById("delWrap");
+      w.innerHTML = `<span>Delete for everyone?</span><button class="btn danger small" type="button" id="delYes">Yes, delete</button><button class="btn small" type="button" id="delNo">Keep</button>`;
+      document.getElementById("delYes").addEventListener("click", async () => { if (await onDelete()) closeSheet(); });
+      document.getElementById("delNo").addEventListener("click", () => { w.innerHTML = `<button class="btn danger" type="button" id="delBtn">${I.trash}${esc(deleteLabel || "Delete")}</button>`; openSheetDeleteRebind(onDelete, deleteLabel); });
+    });
+  }
+  const first = form.querySelector("input, select, textarea"); if (first) first.focus();
+}
+function openSheetDeleteRebind(onDelete, label) {
+  document.getElementById("delBtn").addEventListener("click", () => {
+    const w = document.getElementById("delWrap");
+    w.innerHTML = `<span>Delete for everyone?</span><button class="btn danger small" type="button" id="delYes">Yes, delete</button><button class="btn small" type="button" id="delNo">Keep</button>`;
+    document.getElementById("delYes").addEventListener("click", async () => { if (await onDelete()) closeSheet(); });
+    document.getElementById("delNo").addEventListener("click", () => { w.innerHTML = `<button class="btn danger" type="button" id="delBtn">${I.trash}${esc(label || "Delete")}</button>`; openSheetDeleteRebind(onDelete, label); });
+  });
+}
+function closeSheet() { overlay.innerHTML = ""; document.documentElement.classList.remove("locked"); if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch (e) {} }
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && overlay.innerHTML) closeSheet(); });
+
+function opt(v, label, sel) { return `<option value="${esc(v)}"${sel ? " selected" : ""}>${esc(label)}</option>`; }
+
+function champRow(c = {}) {
+  return `<div class="crow">
+    <input name="cChamp" list="champList" placeholder="Champion" value="${esc(c.champ || "")}" aria-label="Champion" autocomplete="off">
+    <select name="cRole" aria-label="Role">${ROLES.map(r => opt(r.k, r.code, c.role === r.k)).join("")}</select>
+    <select name="cTier" aria-label="Comfort level">${TIERS.map(t => opt(t.k, t.name, (c.tier || "comfort") === t.k)).join("")}</select>
+    <button class="iconbtn" type="button" data-act="rm-row" aria-label="Remove champion">${I.x}</button></div>`;
+}
+
+function editPlayer(id) {
+  const p = id ? playerById(id) : null;
+  const d = p || { primaryRole: (ROLES.find(r => !S.players.some(x => x.primaryRole === r.k)) || ROLES[0]).k, secondaryRoles: [], champions: [], strengths: [], weaknesses: [], rank: "", div: "" };
+  const body = `
+  <fieldset><legend>Player</legend>
+    <div class="frow"><label class="f"><span>Name</span><input id="pName" name="name" required value="${esc(d.name || "")}" placeholder="What the team calls them"></label>
+    <label class="f"><span>Riot ID</span><input id="pIgn" name="ign" value="${esc(d.ign || "")}" placeholder="Name#TAG"></label></div>
+    <div class="frow"><label class="f"><span>Rank</span><select id="pRank" name="rank">${opt("", "—", !d.rank)}${RANKS.map(r => opt(r, r, d.rank === r)).join("")}</select></label>
+    <label class="f"><span>Division</span><select id="pDiv" name="div">${opt("", "—", !d.div)}${DIVS.map(x => opt(x, x, d.div === x)).join("")}</select></label>
+    <label class="f"><span>Playstyle</span><select id="pStyle" name="style">${opt("", "—", !d.style)}${STYLES.map(s => opt(s, s, d.style === s)).join("")}</select></label></div>
+  </fieldset>
+  <fieldset><legend>Roles</legend>
+    <label class="f"><span>Main role</span><select id="pRole" name="primaryRole">${ROLES.map(r => opt(r.k, r.name, d.primaryRole === r.k)).join("")}</select></label>
+    <div class="f"><span>Can also play</span><div class="checks">${ROLES.map(r => `<label><input type="checkbox" name="sec" value="${r.k}"${(d.secondaryRoles || []).includes(r.k) ? " checked" : ""}>${ri(r.k)}${r.code}</label>`).join("")}</div></div>
+  </fieldset>
+  <fieldset><legend>Champion pool</legend>
+    <p class="formhint">Main = ready for scrims. Comfort = solid. Pocket = situational counterpick. Learning = not draft-ready.</p>
+    <div class="crows" id="crows">${(d.champions || []).map(champRow).join("")}</div>
+    <div><button class="btn small" type="button" data-act="add-row">${I.plus}Add champion</button></div>
+  </fieldset>
+  <fieldset><legend>Strengths</legend>
+    <label class="f"><span>One per line</span><textarea id="pStr" name="strengths" rows="3">${esc((d.strengths || []).join("\n"))}</textarea></label>
+    <div class="quick">${STRENGTH_TAGS.map(t => `<button class="chip" type="button" data-act="quick" data-target="pStr" data-val="${esc(t)}">+ ${esc(t)}</button>`).join("")}</div>
+  </fieldset>
+  <fieldset><legend>Weaknesses</legend>
+    <label class="f"><span>One per line</span><textarea id="pWeak" name="weaknesses" rows="3">${esc((d.weaknesses || []).join("\n"))}</textarea></label>
+    <div class="quick">${WEAK_TAGS.map(t => `<button class="chip" type="button" data-act="quick" data-target="pWeak" data-val="${esc(t)}">+ ${esc(t)}</button>`).join("")}</div>
+  </fieldset>
+  <fieldset><legend>Notes</legend><label class="f"><span>Anything the team should know</span><textarea id="pNotes" name="notes" rows="3" placeholder="e.g. Plays better with early jungle attention">${esc(d.notes || "")}</textarea></label></fieldset>`;
+  openSheet(p ? `Edit ${p.name}` : "Add teammate", body, {
+    onSubmit: async (f) => {
+      const name = f.name.value.trim();
+      if (!name) { toast("Give the player a name before saving."); f.name.focus(); return false; }
+      const champs = [];
+      f.querySelectorAll(".crow").forEach(row => { const champ = champName(row.querySelector('[name="cChamp"]').value); if (champ) champs.push({ champ, role: row.querySelector('[name="cRole"]').value, tier: row.querySelector('[name="cTier"]').value }); });
+      const data = { name, ign: f.ign.value.trim(), rank: f.rank.value, div: f.div.value, style: f.style.value, primaryRole: f.primaryRole.value,
+        secondaryRoles: [...f.querySelectorAll('[name="sec"]:checked')].map(x => x.value).filter(k => k !== f.primaryRole.value),
+        champions: champs, strengths: lines(f.strengths.value), weaknesses: lines(f.weaknesses.value), notes: f.notes.value.trim() };
+      if (p && p.example) data.example = true;
+      const ok = await writeDoc("players", p ? p.id : uid("p-"), data);
+      if (ok) toast(p ? "Player saved" : `${name} added`);
+      return ok;
+    },
+    onDelete: p ? async () => { const ok = await deleteDoc("players", p.id); if (ok) toast(`${p.name} removed`); return ok; } : null,
+    deleteLabel: "Remove player",
+  });
+  if (!p) { const rows = document.getElementById("crows"); rows.insertAdjacentHTML("beforeend", champRow({ role: d.primaryRole, tier: "main" })); }
+}
+
+function sugChips(playerId, role) {
+  const p = playerId ? playerById(playerId) : null;
+  if (!p) return "";
+  let cs = (p.champions || []).filter(c => c.role === role);
+  if (!cs.length) cs = p.champions || [];
+  const order = { main: 0, comfort: 1, pocket: 2, learning: 3 };
+  cs = [...cs].sort((a, b) => (order[a.tier] ?? 1) - (order[b.tier] ?? 1));
+  return cs.slice(0, 8).map(c => `<button class="chip ${esc(c.tier)}" type="button" data-act="pick-sug" data-val="${esc(champName(c.champ))}">${champIcon(c.champ)}${esc(champName(c.champ))}</button>`).join("");
+}
+
+function editComp(id) {
+  const c = id ? S.comps.find(x => x.id === id) : null;
+  const d = c || { picks: {}, archetype: "engage" };
+  const ps = sortedPlayers();
+  const rows = ROLES.map(r => {
+    const pk = (d.picks || {})[r.k] || {};
+    let pid = pk.playerId;
+    if (!c && !pid) { const m = ps.find(p => p.primaryRole === r.k); if (m) pid = m.id; }
+    return `<div class="prow-wrap" data-role="${r.k}"><div class="prow"><span class="role big">${ri(r.k)}${r.code}</span>
+      <select name="pl_${r.k}" aria-label="${r.name} player">${opt("", "No player", !pid)}${ps.map(p => opt(p.id, p.name + (p.primaryRole === r.k ? "" : ` (${ROLE[p.primaryRole]?.code || "?"})`), pid === p.id)).join("")}</select>
+      <input name="ch_${r.k}" list="champList" placeholder="Champion" value="${esc(pk.champ || "")}" aria-label="${r.name} champion" autocomplete="off"></div>
+      <div class="prow"><span></span><div class="sugs">${sugChips(pid, r.k)}</div></div></div>`;
+  }).join("");
+  const body = `
+  <fieldset><legend>Comp</legend>
+    <div class="frow"><label class="f"><span>Name</span><input id="cName" name="cname" value="${esc(d.name || "")}" placeholder="e.g. Dive bot"></label>
+    <label class="f"><span>Archetype</span><select id="cArch" name="archetype">${ARCHETYPES.map(a => opt(a.k, a.name, d.archetype === a.k)).join("")}</select></label></div>
+    <p class="formhint" id="archHint">${esc(ARCH[d.archetype]?.hint || "")}</p>
+  </fieldset>
+  <fieldset><legend>Picks</legend><p class="formhint">Tap a champion from the player's pool, or type any champion.</p>${rows}</fieldset>
+  <fieldset><legend>Game plan</legend>
+    <label class="f"><span>Win condition</span><textarea id="cWin" name="win" rows="2" placeholder="How does this comp win games?">${esc(d.winCondition || "")}</textarea></label>
+    <label class="f"><span>Weak against</span><textarea id="cWeak" name="weak" rows="2" placeholder="Comps or champions that shut it down">${esc(d.weakAgainst || "")}</textarea></label>
+    <label class="f"><span>Target bans</span><input id="cBans" name="bans" value="${esc(d.bans || "")}" placeholder="Comma-separated"></label>
+    <label class="f"><span>Notes</span><textarea id="cNotes" name="cnotes" rows="2">${esc(d.notes || "")}</textarea></label>
+  </fieldset>`;
+  openSheet(c ? `Edit ${c.name || "comp"}` : "New comp", body, {
+    onSubmit: async (f) => {
+      const picks = {};
+      ROLES.forEach(r => { picks[r.k] = { champ: champName(f["ch_" + r.k].value), playerId: f["pl_" + r.k].value }; });
+      const data = { name: f.cname.value.trim() || "Untitled comp", archetype: f.archetype.value, picks, winCondition: f.win.value.trim(), weakAgainst: f.weak.value.trim(), bans: f.bans.value.trim(), notes: f.cnotes.value.trim() };
+      if (c && c.example) data.example = true;
+      const ok = await writeDoc("comps", c ? c.id : uid("c-"), data);
+      if (ok) toast("Comp saved");
+      return ok;
+    },
+    onDelete: c ? async () => { const ok = await deleteDoc("comps", c.id); if (ok) toast("Comp deleted"); return ok; } : null,
+    deleteLabel: "Delete comp",
+  });
+  const form = document.getElementById("sheetForm");
+  form.archetype.addEventListener("change", () => { document.getElementById("archHint").textContent = ARCH[form.archetype.value]?.hint || ""; });
+  ROLES.forEach(r => form["pl_" + r.k].addEventListener("change", (e) => { e.target.closest(".prow-wrap").querySelector(".sugs").innerHTML = sugChips(e.target.value, r.k); }));
+}
+
+function renameTeam() {
+  openSheet("Rename team", `<label class="f"><span>Team name</span><input id="tName" name="tname" value="${esc(S.meta.teamName || "")}" placeholder="Our Team" maxlength="40"></label>`, {
+    onSubmit: async (f) => { const ok = await saveMeta({ teamName: f.tname.value.trim() || "Our Team" }); if (ok !== false) toast("Team renamed"); return ok !== false; },
+  });
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-act]");
+  if (!t) return;
+  const act = t.dataset.act;
+  if (act === "close-scrim") { if (e.target === t) closeSheet(); return; }
+  if (act === "close") return closeSheet();
+  if (act === "add-player") return editPlayer(null);
+  if (act === "edit-player") return editPlayer(t.dataset.id);
+  if (act === "add-comp") return editComp(null);
+  if (act === "edit-comp") return editComp(t.dataset.id);
+  if (act === "unlock") return openCodeSheet();
+  if (act === "filter") { S.roleFilter = t.dataset.val; render(); return; }
+  if (act === "load-ex") return loadExamples();
+  if (act === "clear-ex") return clearExamples();
+  if (act === "add-row") { const rows = document.getElementById("crows"); const role = document.getElementById("pRole").value; rows.insertAdjacentHTML("beforeend", champRow({ role, tier: "comfort" })); rows.lastElementChild.querySelector("input").focus(); return; }
+  if (act === "rm-row") { t.closest(".crow").remove(); return; }
+  if (act === "quick") { const ta = document.getElementById(t.dataset.target); const cur = lines(ta.value); if (!cur.some(x => x.toLowerCase() === t.dataset.val.toLowerCase())) { cur.push(t.dataset.val); ta.value = cur.join("\n"); } return; }
+  if (act === "pick-sug") { const wrap = t.closest(".prow-wrap"); wrap.querySelector("input").value = t.dataset.val; return; }
+});
+document.getElementById("renameBtn").addEventListener("click", renameTeam);
+document.getElementById("codeBtn").addEventListener("click", () => {
+  if (S.readOnly) return openCodeSheet();
+  setCode(""); S.readOnly = true; render(); toast("Editing locked on this device");
+});
+
+function route() { const h = (location.hash || "").slice(1); S.view = ["roster", "team", "comps"].includes(h) ? h : "roster"; render(); }
+window.addEventListener("hashchange", route);
+route();
+
+/* ---------- Champion icons (published alongside the page) ---------- */
+fetch("champ-icons.json").then(r => r.ok ? r.json() : null).then(j => { if (j && typeof j === "object") { ICONS = {}; for (const k in j) if (typeof j[k] === "string" && j[k].startsWith("data:image/")) ICONS[k.toLowerCase()] = j[k]; render(); } }).catch(() => {});
+
+/* ---------- Boot ---------- */
+(async function boot() {
+  const c = window.claude;
+  if (c && typeof c.use === "function") { try { db = await c.use("db"); } catch (e) { db = null; } }
+  if (!db) {
+    // Hosted on Vercel: use the board API when it answers with JSON
+    try { const r = await fetch(API + "?since=-1", { cache: "no-store" }); if (r.status !== 404 && (r.headers.get("content-type") || "").includes("json")) { startApi(); return; } } catch (e) {}
+    startLocal(); return;
+  }
+  startDb();
+  try { const u = await c.use("user"); if (u) { const w = await u.can("data.write"); if (w === false) { S.readOnly = true; render(); } } } catch (e) {}
+})();
+})();
+</script>
+</body>
+</html>
